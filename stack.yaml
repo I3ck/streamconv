@@ -1,0 +1,8 @@
+flags: {}
+packages:
+- .
+extra-deps:
+- acid-state-0.14.3
+- GLUtil-0.10.3@sha256:6b3eb89a15f0363647bc4112e007868440b1555e11bf3219e0e1ea884416e5e1
+- hpp-0.6.1@sha256:c7d22f5d09661ce4bd257c85a09d997561f167212db1f7ede978845715bd9200
+resolver: lts-12.12
