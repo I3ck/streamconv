@@ -1,8 +1,5 @@
 .idea/
 .stack-work/
 cabal.config
-testproject
 *.tmp
 
-#acid state
-state/
