@@ -19,6 +19,7 @@ executable streamconv
   main-is:             Main.hs
   other-modules:       Types
                      , Classes
+                     , Instances
   -- other-extensions:
   build-depends:       base
                      , conduit

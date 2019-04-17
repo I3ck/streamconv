@@ -2,7 +2,7 @@ module Types where
 
 --------------------------------------------------------------------------------
 
-data Vertex = Vertex
+data Position = Position
   { x :: Double
   , y :: Double
   , z :: Double

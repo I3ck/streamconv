@@ -18,6 +18,8 @@ main = do --withSourceFile "input.tmp" $ \source ->
 
 --------------------------------------------------------------------------------
 
+-- TODO parser that emits chunks of e.g. 3 vertices + normal etc.
+
 test :: ConduitT T.Text T.Text IO ()
 test = do 
     Just x <- await --TODO could fail
