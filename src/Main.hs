@@ -3,6 +3,9 @@
 module Main where
 
 import Conduit
+import Types
+import Classes
+import Instances ()
 --import Control.Monad
 --import qualified Data.ByteString as BS
 import qualified Data.Text as T
@@ -14,6 +17,7 @@ main = do --withSourceFile "input.tmp" $ \source ->
        --withSinkFile "output.tmp" $ \sink -> do
        --runConduit $ source .| decodeUtf8C .| test .| encodeUtf8C .| sink
        runConduit $ fileChars "input.tmp" .| test2 .| sinkList
+       runConduit $ yieldMany [Position 3 4 5] .| xyzSink ";" "\n" "output.tmp"
        pure ()
 
 --------------------------------------------------------------------------------
@@ -42,3 +46,16 @@ fileChars :: String -> ConduitT () Char IO ()
 fileChars path = do
     str <- liftIO $ readFile path
     yieldMany str
+
+--- TODO strong types for path, delimVal delimLine
+xyzSink :: (X a, Y a, Z a) => String -> String -> String -> ConduitT a Void IO ()
+xyzSink delimval delimline path = do 
+  vs <- sinkList
+  liftIO $ writeFile path (concatMap toStr vs)
+  where
+    toStr v =  (show . getx $ v) 
+            ++ delimval 
+            ++ (show . gety $ v) 
+            ++ delimval 
+            ++ (show . getz $ v)
+            ++ delimline
