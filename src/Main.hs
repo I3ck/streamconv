@@ -6,6 +6,7 @@ import Conduit
 import Types
 import Classes
 import Instances ()
+import System.IO
 --import Control.Monad
 --import qualified Data.ByteString as BS
 import qualified Data.Text as T
@@ -17,7 +18,7 @@ main = do --withSourceFile "input.tmp" $ \source ->
        --withSinkFile "output.tmp" $ \sink -> do
        --runConduit $ source .| decodeUtf8C .| test .| encodeUtf8C .| sink
        runConduit $ fileChars "input.tmp" .| test2 .| sinkList
-       runConduit $ yieldMany [Position 3 4 5] .| xyzSink ";" "\n" "output.tmp"
+       runConduit $ (yieldMany . repeat $ Position 3 4 5) .| xyzSink ";" "\n" "output.tmp"
        pure ()
 
 --------------------------------------------------------------------------------
@@ -49,10 +50,18 @@ fileChars path = do
 
 --- TODO strong types for path, delimVal delimLine
 xyzSink :: (X a, Y a, Z a) => String -> String -> String -> ConduitT a Void IO ()
-xyzSink delimval delimline path = do 
-  vs <- sinkList
-  liftIO $ writeFile path (concatMap toStr vs)
+xyzSink delimval delimline path = do
+  h <- liftIO $ openFile path WriteMode --TODO consider withFile
+  go h
+  liftIO $ hClose h
   where
+    go h = do
+      may <- await
+      case may of
+        Nothing -> pure ()
+        Just x  -> do 
+          liftIO $ hPutStr h (toStr x)
+          go h
     toStr v =  (show . getx $ v) 
             ++ delimval 
             ++ (show . gety $ v) 
