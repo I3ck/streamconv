@@ -18,7 +18,7 @@ main = do --withSourceFile "input.tmp" $ \source ->
        --withSinkFile "output.tmp" $ \sink -> do
        --runConduit $ source .| decodeUtf8C .| test .| encodeUtf8C .| sink
        runConduit $ fileChars "input.tmp" .| test2 .| sinkList
-       runConduit $ (yieldMany . repeat $ Position 3 4 5) .| xyzSink ";" "\n" "output.tmp"
+       runConduit $ (yieldMany . repeat $ Position 3 4 5) .| mapC (xyzToStr ";" "\n") .| stringSink "output.tmp"
        pure ()
 
 --------------------------------------------------------------------------------
@@ -48,9 +48,18 @@ fileChars path = do
     str <- liftIO $ readFile path
     yieldMany str
 
---- TODO strong types for path, delimVal delimLine
-xyzSink :: (X a, Y a, Z a) => String -> String -> String -> ConduitT a Void IO ()
-xyzSink delimval delimline path = do
+xyzToStr :: (X a, Y a, Z a) => String -> String -> a -> String
+xyzToStr delimval delimline v =
+     (show . getx $ v) 
+  ++ delimval 
+  ++ (show . gety $ v) 
+  ++ delimval 
+  ++ (show . getz $ v)
+  ++ delimline
+
+---TODO rename since writes to file
+stringSink :: String -> ConduitT String Void IO ()
+stringSink path = do
   h <- liftIO $ openFile path WriteMode --TODO consider withFile
   go h
   liftIO $ hClose h
@@ -59,12 +68,6 @@ xyzSink delimval delimline path = do
       may <- await
       case may of
         Nothing -> pure ()
-        Just x  -> do 
-          liftIO $ hPutStr h (toStr x)
+        Just x -> do
+          liftIO $ hPutStr h x
           go h
-    toStr v =  (show . getx $ v) 
-            ++ delimval 
-            ++ (show . gety $ v) 
-            ++ delimval 
-            ++ (show . getz $ v)
-            ++ delimline
