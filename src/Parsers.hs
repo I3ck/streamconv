@@ -13,6 +13,7 @@ type Parser = Parsec Void String
 
 --------------------------------------------------------------------------------
 
+--- TODO not parsing lazyly
 xyz :: String -> String -> Parser [Position]
 xyz delimval delimline = many $ xyzLine delimval delimline ---TODO use delimline only in this parser and dont require it at the end
 
