@@ -18,7 +18,8 @@ main = do --withSourceFile "input.tmp" $ \source ->
        --withSinkFile "output.tmp" $ \sink -> do
        --runConduit $ source .| decodeUtf8C .| test .| encodeUtf8C .| sink
        runConduit $ fileChars "input.tmp" .| test2 .| sinkList
-       runConduit $ (yieldMany . repeat $ Position 3 4 5) .| mapC (xyzToStr ";" "\n") .| stringSink "output.tmp"
+       runConduit $ (yieldMany . replicate 1000 $ Position 3 4 5) .| mapC (xyzToStr ";" "\n") .| stringSink "output1.tmp"
+       runConduit $ (yieldMany . replicate 1000 $ Position 3 4 5) .| mapC (xyToStr  ";" "\n") .| stringSink "output2.tmp"
        pure ()
 
 --------------------------------------------------------------------------------
@@ -48,6 +49,13 @@ fileChars path = do
     str <- liftIO $ readFile path
     yieldMany str
 
+xyToStr :: (X a, Y a) => String -> String -> a -> String
+xyToStr delimval delimline v =
+     (show . getx $ v) 
+  ++ delimval 
+  ++ (show . gety $ v) 
+  ++ delimline
+
 xyzToStr :: (X a, Y a, Z a) => String -> String -> a -> String
 xyzToStr delimval delimline v =
      (show . getx $ v) 
@@ -58,6 +66,7 @@ xyzToStr delimval delimline v =
   ++ delimline
 
 ---TODO rename since writes to file
+---TODO consider usage Text everywhere
 stringSink :: String -> ConduitT String Void IO ()
 stringSink path = do
   h <- liftIO $ openFile path WriteMode --TODO consider withFile
