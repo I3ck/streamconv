@@ -6,6 +6,7 @@ import Conduit
 import Types
 import Classes
 import Instances ()
+import Producers
 import System.IO
 --import Control.Monad
 --import qualified Data.ByteString as BS
@@ -20,6 +21,7 @@ main = do --withSourceFile "input.tmp" $ \source ->
        runConduit $ fileChars "input.tmp" .| test2 .| sinkList
        runConduit $ (yieldMany . replicate 1000 $ Position 3 4 5) .| mapC (xyzToStr ";" "\n") .| stringSink "output1.tmp"
        runConduit $ (yieldMany . replicate 1000 $ Position 3 4 5) .| mapC (xyToStr  ";" "\n") .| stringSink "output2.tmp"
+       runConduit $ xyz "output1.tmp" ";" "\n" .| mapC (xyToStr  ";" "\n") .| stringSink "output3.tmp"
        pure ()
 
 --------------------------------------------------------------------------------
