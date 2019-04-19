@@ -1,7 +1,10 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Parsers where
 
 import Types
 import Data.Void
+import Data.Text.Lazy
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -9,21 +12,21 @@ import qualified Text.Megaparsec.Char.Lexer as L
 
 --------------------------------------------------------------------------------
 
-type Parser = Parsec Void String
+type Parser = Parsec Void Text
 
 --------------------------------------------------------------------------------
 
 --- TODO not parsing lazyly
-xyz :: String -> String -> Parser [Position]
+xyz :: Text -> Text -> Parser [Position]
 xyz delimval delimline = many $ xyzLine delimval delimline ---TODO use delimline only in this parser and dont require it at the end
 
-xyzLine :: String -> String -> Parser Position
+xyzLine :: Text -> Text -> Parser Position
 xyzLine delimval delimline = do
-  x <- double
+  x <- L.float
   string delimval
-  y <- double
+  y <- L.float
   string delimval
-  z <- double
+  z <- L.float
   string delimline
 
   pure $ Position x y z
@@ -32,8 +35,8 @@ xyzLine delimval delimline = do
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-double :: Parser Double
-double = try (L.signed sc L.float) <|> (fromIntegral <$> L.signed sc L.decimal)
+--double :: Parser Double
+--double = try (L.signed sc L.float) <|> (fromIntegral <$> L.signed sc L.decimal)
 
 --------------------------------------------------------------------------------
 

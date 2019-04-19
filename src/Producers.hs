@@ -2,14 +2,16 @@ module Producers where
 
 import Types
 import Conduit
+import Data.Text.Lazy
+import qualified Data.Text.Lazy.IO as L
 import qualified Parsers as P
 import Text.Megaparsec
 
 --------------------------------------------------------------------------------
 
-xyz :: String -> String -> String -> ConduitT () Position IO ()
+xyz :: String -> Text -> Text -> ConduitT () Position IO ()
 xyz path delimval delimline = do
-    blob   <- liftIO $ readFile path
+    blob   <- liftIO $ L.readFile path
     let initial = State blob 0 (PosState blob 0 (SourcePos "" (mkPos 0) (mkPos 0)) (mkPos 0) "") ---TODO PosState constructor likely incorrect
     go initial
   where

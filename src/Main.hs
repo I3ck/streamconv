@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
@@ -19,7 +20,7 @@ main = do --withSourceFile "input.tmp" $ \source ->
        --withSinkFile "output.tmp" $ \sink -> do
        --runConduit $ source .| decodeUtf8C .| test .| encodeUtf8C .| sink
        runConduit $ fileChars "input.tmp" .| test2 .| sinkList
-       runConduit $ (yieldMany . replicate 1000000 $ Position 3 4 5) .| mapC (xyzToStr ";" "\n") .| stringSink "output1.tmp"
+       runConduit $ (yieldMany . replicate 10000000 $ Position 3 4 5) .| mapC (xyzToStr ";" "\n") .| stringSink "output1.tmp"
        runConduit $ (yieldMany . replicate 1000 $ Position 3 4 5) .| mapC (xyToStr  ";" "\n") .| stringSink "output2.tmp"
        runConduit $ xyz "output1.tmp" ";" "\n" .| mapC (xyToStr  ";" "\n") .| stringSink "output3.tmp"
        pure ()
@@ -53,19 +54,21 @@ fileChars path = do
 
 xyToStr :: (X a, Y a) => String -> String -> a -> String
 xyToStr delimval delimline v =
-     (show . getx $ v) 
-  ++ delimval 
-  ++ (show . gety $ v) 
-  ++ delimline
+    (((show . getx $ v) ++)
+  . (delimval ++)
+  . ((show . gety $ v) ++)
+  . (delimline ++))
+  ""
 
 xyzToStr :: (X a, Y a, Z a) => String -> String -> a -> String
 xyzToStr delimval delimline v =
-     (show . getx $ v) 
-  ++ delimval 
-  ++ (show . gety $ v) 
-  ++ delimval 
-  ++ (show . getz $ v)
-  ++ delimline
+    (((show . getx $ v) ++)
+  . (delimval ++)
+  . ((show . gety $ v) ++)
+  . (delimval ++)
+  . ((show . getz $ v) ++)
+  . (delimline ++))
+  ""
 
 ---TODO rename since writes to file
 ---TODO consider usage Text everywhere

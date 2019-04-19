@@ -1,0 +1,5 @@
+profiling via
+stack build --profile
+stack exec streamconv -- +RTS -p
+
+check partial parse performance of attoparsec?
