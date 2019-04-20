@@ -4,32 +4,46 @@ module Parsers where
 
 import Types
 import Data.Void
-import Data.Text.Lazy
+import Data.Text
+import qualified Data.Text.Lazy as L
+import qualified Data.Attoparsec.Text.Lazy as A
 import Text.Megaparsec
 import Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer as L
+import qualified Text.Megaparsec.Char.Lexer as LE
 
 
 --------------------------------------------------------------------------------
 
-type Parser = Parsec Void Text
+type Parser = Parsec Void L.Text
 
 --------------------------------------------------------------------------------
 
 --- TODO not parsing lazyly
-xyz :: Text -> Text -> Parser [Position]
+xyz :: L.Text -> L.Text -> Parser [Position]
 xyz delimval delimline = many $ xyzLine delimval delimline ---TODO use delimline only in this parser and dont require it at the end
 
-xyzLine :: Text -> Text -> Parser Position
+xyzLine :: L.Text -> L.Text -> Parser Position
 xyzLine delimval delimline = do
-  x <- L.float
+  x <- LE.float
   string delimval
-  y <- L.float
+  y <- LE.float
   string delimval
-  z <- L.float
+  z <- LE.float
   string delimline
 
   pure $ Position x y z
+
+xyzLine' :: Text -> Text -> A.Parser Position
+xyzLine' delimval delimline = do
+  x <- A.double
+  A.string delimval
+  y <- A.double
+  A.string delimval
+  z <- A.double
+  A.string delimline
+
+  pure $ Position x y z
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -41,7 +55,7 @@ xyzLine delimval delimline = do
 --------------------------------------------------------------------------------
 
 sc :: Parser ()
-sc = L.space space1 lineComment blockComment
+sc = LE.space space1 lineComment blockComment
   where
-    lineComment  = L.skipLineComment "//"
-    blockComment = L.skipBlockComment "/*" "*/"
+    lineComment  = LE.skipLineComment "//"
+    blockComment = LE.skipBlockComment "/*" "*/"
