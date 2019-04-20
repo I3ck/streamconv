@@ -2,5 +2,5 @@
 .stack-work/
 cabal.config
 *.tmp
-streamconv.prof
+*.prof
 
