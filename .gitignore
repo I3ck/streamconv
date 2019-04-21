@@ -3,4 +3,5 @@
 cabal.config
 *.tmp
 *.prof
+tmp/
 

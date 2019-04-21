@@ -18,21 +18,21 @@ main = do
   runConduit $ 
        (yieldMany . replicate 10000000 $ Position 3 4 5) 
     .| xyzToStr bufferSize " " "\n" 
-    .| stringSink "output1.tmp"
+    .| stringSink "tmp/output1.xyz"
 
   runConduit $ 
        (yieldMany . replicate 1000 $ Position 3 4 5) 
     .| xyToStr bufferSize ";" "\n" 
-    .| stringSink "output2.tmp"
+    .| stringSink "tmp/output2.xy"
   
   runConduit $ 
-       xyz "output1.tmp" " " "\n" 
+       xyz "tmp/output1.xyz" " " "\n" 
     .| xyToStr bufferSize  ";" "\n" 
-    .| stringSink "output3.tmp"
+    .| stringSink "tmp/output3.xyz"
 
   runConduit $ 
-       xyz "output1.tmp" " " "\n" 
+       xyz "tmp/output1.xyz" " " "\n" 
     .| objToStr bufferSize 
-    .| stringSink "outputObj.tmp"
+    .| stringSink "tmp/output.obj"
     
   pure ()
