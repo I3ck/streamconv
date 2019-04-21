@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Parsers where
+module Parsers
+  ( xyzLine
+  ) where
 
 import Types
 import Data.Text

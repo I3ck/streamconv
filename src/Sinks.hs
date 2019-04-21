@@ -1,8 +1,11 @@
-module Sinks where
+module Sinks
+  ( stringSink 
+  ) where
 
 import Data.Void
 import Conduit
 import System.IO
+
 --------------------------------------------------------------------------------
 
 stringSink :: String -> ConduitT String Void IO ()

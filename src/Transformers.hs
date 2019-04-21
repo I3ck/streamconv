@@ -1,27 +1,12 @@
-module Transformers where
+module Transformers
+  ( xyToStrC
+  , xyzToStrC    
+  ) where
 
 import Classes
 import Conduit
 
 --------------------------------------------------------------------------------
-
-xyToStr :: (X a, Y a) => String -> String -> a -> String
-xyToStr delimval delimline v =
-    (((show . getx $ v) ++)
-  . (delimval ++)
-  . ((show . gety $ v) ++)
-  . (delimline ++))
-  ""
-
-xyzToStr :: (X a, Y a, Z a) => String -> String -> a -> String
-xyzToStr delimval delimline v =
-    (((show . getx $ v) ++)
-  . (delimval ++)
-  . ((show . gety $ v) ++)
-  . (delimval ++)
-  . ((show . getz $ v) ++)
-  . (delimline ++))
-  ""
 
 xyToStrC :: (Monad m, X a, Y a) => String -> String -> ConduitT a String m ()
 xyToStrC delimval delimline = go []
@@ -37,6 +22,8 @@ xyToStrC delimval delimline = go []
                      go []
                    else go (v : buffer)
 
+--------------------------------------------------------------------------------
+
 xyzToStrC :: (Monad m, X a, Y a, Z a) => String -> String -> ConduitT a String m ()
 xyzToStrC delimval delimline = go []
   where
@@ -50,3 +37,25 @@ xyzToStrC delimval delimline = go []
                      yield $ concatMap (xyzToStr delimval delimline) (v : buffer)
                      go []
                    else go (v : buffer)
+
+--------------------------------------------------------------------------------
+
+xyToStr :: (X a, Y a) => String -> String -> a -> String
+xyToStr delimval delimline v =
+    (((show . getx $ v) ++)
+  . (delimval ++)
+  . ((show . gety $ v) ++)
+  . (delimline ++))
+  ""
+
+--------------------------------------------------------------------------------
+
+xyzToStr :: (X a, Y a, Z a) => String -> String -> a -> String
+xyzToStr delimval delimline v =
+    (((show . getx $ v) ++)
+  . (delimval ++)
+  . ((show . gety $ v) ++)
+  . (delimval ++)
+  . ((show . getz $ v) ++)
+  . (delimline ++))
+  ""

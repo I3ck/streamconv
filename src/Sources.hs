@@ -1,4 +1,6 @@
-module Sources where
+module Sources
+  ( xyz 
+  ) where
 
 import Types
 import Conduit
