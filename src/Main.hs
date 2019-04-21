@@ -34,5 +34,9 @@ main = do
        xyz "tmp/output1.xyz" " " "\n" 
     .| objToStr bufferSize 
     .| stringSink "tmp/output.obj"
+
+  runConduit $
+       xyz "tmp/output1.xyz" " " "\n"
+    .| plyAsciiSink "tmp/output.ply"
     
   pure ()
