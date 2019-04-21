@@ -1,10 +1,18 @@
 module Transformers
   ( xyToStr
   , xyzToStr    
+  , objToStr
   ) where
 
 import Classes
 import Conduit
+
+---TODO names are weird, think of something else
+
+--------------------------------------------------------------------------------
+
+objToStr :: (Monad m, X a, Y a, Z a) => Int -> ConduitT a String m ()
+objToStr bufferSize = bufferedToStr bufferSize objToStr'
 
 --------------------------------------------------------------------------------
 
@@ -30,6 +38,19 @@ bufferedToStr bufferSize f = go []
                      yield $ concatMap f (v : buffer)
                      go []
                    else go (v : buffer)
+
+--------------------------------------------------------------------------------
+
+objToStr' :: (X a, Y a, Z a) => a -> String
+objToStr' v =
+    (("v " ++)
+  . ((show . getx $ v) ++)
+  . (' ' :)
+  . ((show . gety $ v) ++)
+  . (' ' :)
+  . ((show . getz $ v) ++)
+  . ('\n' :))
+  ""
 
 --------------------------------------------------------------------------------
 

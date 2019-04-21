@@ -29,5 +29,10 @@ main = do
        xyz "output1.tmp" " " "\n" 
     .| xyToStr bufferSize  ";" "\n" 
     .| stringSink "output3.tmp"
+
+  runConduit $ 
+       xyz "output1.tmp" " " "\n" 
+    .| objToStr bufferSize 
+    .| stringSink "outputObj.tmp"
     
   pure ()
