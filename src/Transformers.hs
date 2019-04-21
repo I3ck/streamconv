@@ -1,6 +1,6 @@
 module Transformers
-  ( xyToStrC
-  , xyzToStrC    
+  ( xyToStr
+  , xyzToStr    
   ) where
 
 import Classes
@@ -8,40 +8,40 @@ import Conduit
 
 --------------------------------------------------------------------------------
 
-xyToStrC :: (Monad m, X a, Y a) => String -> String -> ConduitT a String m ()
-xyToStrC delimval delimline = go []
+xyToStr :: (Monad m, X a, Y a) => String -> String -> ConduitT a String m ()
+xyToStr delimval delimline = go []
   where
     bufferSize = 100 --TODO param
     go buffer = do
       may <- await
       case may of
-        Nothing -> yield $ concatMap (xyToStr delimval delimline) buffer
+        Nothing -> yield $ concatMap (xyToStr' delimval delimline) buffer
         Just v  -> if length buffer > bufferSize
                    then do 
-                     yield $ concatMap (xyToStr delimval delimline) (v : buffer)
+                     yield $ concatMap (xyToStr' delimval delimline) (v : buffer)
                      go []
                    else go (v : buffer)
 
 --------------------------------------------------------------------------------
 
-xyzToStrC :: (Monad m, X a, Y a, Z a) => String -> String -> ConduitT a String m ()
-xyzToStrC delimval delimline = go []
+xyzToStr :: (Monad m, X a, Y a, Z a) => String -> String -> ConduitT a String m ()
+xyzToStr delimval delimline = go []
   where
     bufferSize = 100 --TODO param
     go buffer = do
       may <- await
       case may of
-        Nothing -> yield $ concatMap (xyzToStr delimval delimline) buffer
+        Nothing -> yield $ concatMap (xyzToStr' delimval delimline) buffer
         Just v  -> if length buffer > bufferSize
                    then do 
-                     yield $ concatMap (xyzToStr delimval delimline) (v : buffer)
+                     yield $ concatMap (xyzToStr' delimval delimline) (v : buffer)
                      go []
                    else go (v : buffer)
 
 --------------------------------------------------------------------------------
 
-xyToStr :: (X a, Y a) => String -> String -> a -> String
-xyToStr delimval delimline v =
+xyToStr' :: (X a, Y a) => String -> String -> a -> String
+xyToStr' delimval delimline v =
     (((show . getx $ v) ++)
   . (delimval ++)
   . ((show . gety $ v) ++)
@@ -50,8 +50,8 @@ xyToStr delimval delimline v =
 
 --------------------------------------------------------------------------------
 
-xyzToStr :: (X a, Y a, Z a) => String -> String -> a -> String
-xyzToStr delimval delimline v =
+xyzToStr' :: (X a, Y a, Z a) => String -> String -> a -> String
+xyzToStr' delimval delimline v =
     (((show . getx $ v) ++)
   . (delimval ++)
   . ((show . gety $ v) ++)
