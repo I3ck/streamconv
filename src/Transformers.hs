@@ -8,33 +8,26 @@ import Conduit
 
 --------------------------------------------------------------------------------
 
-xyToStr :: (Monad m, X a, Y a) => String -> String -> ConduitT a String m ()
-xyToStr delimval delimline = go []
-  where
-    bufferSize = 100 --TODO param
-    go buffer = do
-      may <- await
-      case may of
-        Nothing -> yield $ concatMap (xyToStr' delimval delimline) buffer
-        Just v  -> if length buffer > bufferSize
-                   then do 
-                     yield $ concatMap (xyToStr' delimval delimline) (v : buffer)
-                     go []
-                   else go (v : buffer)
+xyToStr :: (Monad m, X a, Y a) => Int -> String -> String -> ConduitT a String m ()
+xyToStr bufferSize delimval delimline = bufferedToStr bufferSize (xyToStr' delimval delimline)
 
 --------------------------------------------------------------------------------
 
-xyzToStr :: (Monad m, X a, Y a, Z a) => String -> String -> ConduitT a String m ()
-xyzToStr delimval delimline = go []
+xyzToStr :: (Monad m, X a, Y a, Z a) => Int -> String -> String -> ConduitT a String m ()
+xyzToStr bufferSize delimval delimline = bufferedToStr bufferSize (xyzToStr' delimval delimline)
+
+--------------------------------------------------------------------------------
+
+bufferedToStr :: (Monad m) => Int -> (a -> String) -> ConduitT a String m ()
+bufferedToStr bufferSize f = go []
   where
-    bufferSize = 100 --TODO param
     go buffer = do
       may <- await
       case may of
-        Nothing -> yield $ concatMap (xyzToStr' delimval delimline) buffer
+        Nothing -> yield $ concatMap f buffer
         Just v  -> if length buffer > bufferSize
                    then do 
-                     yield $ concatMap (xyzToStr' delimval delimline) (v : buffer)
+                     yield $ concatMap f (v : buffer)
                      go []
                    else go (v : buffer)
 
