@@ -21,7 +21,9 @@ executable streamconv
                      , Classes
                      , Instances
                      , Parsers
-                     , Producers
+                     , Sources
+                     , Transformers
+                     , Sinks
   -- other-extensions:
   build-depends:       base
                      , conduit

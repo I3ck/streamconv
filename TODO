@@ -3,3 +3,6 @@ stack build --profile
 stack exec streamconv -- +RTS -p
 
 check partial parse performance of attoparsec?
+
+performance might be fine, since Meshlab needs 20 sec to open xyz file,
+test binary formats next

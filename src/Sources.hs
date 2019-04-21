@@ -1,4 +1,4 @@
-module Producers where
+module Sources where
 
 import Types
 import Conduit
