@@ -19,7 +19,7 @@ main = do
        (yieldMany $ fmap (\i -> Position i (2*i) (3*i)) [0..10000000-1]) 
     .| xyzToStr bufferSize " " "\n" 
     .| stringSink "tmp/output1.xyz"
-
+{-
   runConduit $ 
        (yieldMany . replicate 1000 $ Position 3 4 5) 
     .| xyToStr bufferSize ";" "\n" 
@@ -38,5 +38,9 @@ main = do
   runConduit $
        xyz "tmp/output1.xyz" " " "\n"
     .| plyAsciiSink "tmp/output.ply"
+-}
+  runConduit $
+       xyz "tmp/output1.xyz" " " "\n"
+    .| plyBinarySink "tmp/outputBin.ply"
     
   pure ()
