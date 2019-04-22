@@ -16,7 +16,7 @@ main = do
   let bufferSize = 100
 
   runConduit $ 
-       (yieldMany . replicate 10000000 $ Position 3 4 5) 
+       (yieldMany $ fmap (\i -> Position i (2*i) (3*i)) [0..10000000-1]) 
     .| xyzToStr bufferSize " " "\n" 
     .| stringSink "tmp/output1.xyz"
 
