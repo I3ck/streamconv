@@ -2,6 +2,8 @@
 
 module Parsers
   ( xyzLine
+  , skipSTLAsciiHeader
+  , stlFace
   ) where
 
 import Types
@@ -20,3 +22,52 @@ xyzLine delimval delimline = do
   A.string delimline
 
   pure $ Position x y z
+
+--------------------------------------------------------------------------------
+
+skipSTLAsciiHeader :: A.Parser ()
+skipSTLAsciiHeader = do
+  A.string "solid"
+  skipRestOfLine
+
+--------------------------------------------------------------------------------
+  
+--- TODO later also yield Normals
+--- TODO likely misses space skipping
+stlFace :: A.Parser (Position, Position, Position)
+stlFace = do
+  A.string "facet"
+  skipRestOfLine --TODO later parse normals here
+  A.string "outer loop"
+  skipRestOfLine
+  a <- vertex
+  b <- vertex
+  c <- vertex
+  A.string "endloop"
+  skipRestOfLine
+  A.string "endfacet"
+  skipRestOfLine
+  pure $ (a, b, c)
+
+  where
+    vertex :: A.Parser Position
+    vertex = do
+      A.string "vertex"
+      A.skipSpace
+      x <- A.double
+      A.skipSpace
+      y <- A.double
+      A.skipSpace
+      z <- A.double
+      skipRestOfLine
+      pure $ Position x y z
+
+
+
+
+--------------------------------------------------------------------------------
+
+skipRestOfLine :: A.Parser ()
+skipRestOfLine = do
+  A.takeTill A.isEndOfLine
+  A.endOfLine

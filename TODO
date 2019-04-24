@@ -6,3 +6,6 @@ check partial parse performance of attoparsec?
 
 performance might be fine, since Meshlab needs 20 sec to open xyz file,
 test binary formats next
+
+pass handle into sinks from outside, making it easier to stream from multiple conduits
+this also makes sources easier, since the parsers can just keep on going
