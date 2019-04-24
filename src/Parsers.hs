@@ -8,57 +8,62 @@ module Parsers
 
 import Types
 import Data.Text
-import qualified Data.Attoparsec.Text.Lazy as A
+import Data.Attoparsec.Text.Lazy
 
 --------------------------------------------------------------------------------
 
-xyzLine :: Text -> Text -> A.Parser Position
+xyzLine :: Text -> Text -> Parser Position
 xyzLine delimval delimline = do
-  x <- A.double
-  A.string delimval
-  y <- A.double
-  A.string delimval
-  z <- A.double
-  A.string delimline
+  x <- double
+  string delimval
+  y <- double
+  string delimval
+  z <- double
+  string delimline
 
   pure $ Position x y z
 
 --------------------------------------------------------------------------------
 
-skipSTLAsciiHeader :: A.Parser ()
+skipSTLAsciiHeader :: Parser ()
 skipSTLAsciiHeader = do
-  A.string "solid"
+  string "solid"
   skipRestOfLine
 
 --------------------------------------------------------------------------------
   
 --- TODO later also yield Normals
 --- TODO likely misses space skipping
-stlFace :: A.Parser (Position, Position, Position)
+stlFace :: Parser (Position, Position, Position)
 stlFace = do
-  A.string "facet"
+  skipSpace
+  string "facet normal"
   skipRestOfLine --TODO later parse normals here
-  A.string "outer loop"
+  skipSpace
+  string "outer loop"
   skipRestOfLine
   a <- vertex
   b <- vertex
   c <- vertex
-  A.string "endloop"
+  skipSpace
+  string "endloop"
   skipRestOfLine
-  A.string "endfacet"
+  skipSpace
+  string "endfacet"
   skipRestOfLine
   pure $ (a, b, c)
 
   where
-    vertex :: A.Parser Position
+    vertex :: Parser Position
     vertex = do
-      A.string "vertex"
-      A.skipSpace
-      x <- A.double
-      A.skipSpace
-      y <- A.double
-      A.skipSpace
-      z <- A.double
+      skipSpace
+      string "vertex"
+      skipSpace
+      x <- double
+      skipSpace
+      y <- double
+      skipSpace
+      z <- double
       skipRestOfLine
       pure $ Position x y z
 
@@ -67,7 +72,7 @@ stlFace = do
 
 --------------------------------------------------------------------------------
 
-skipRestOfLine :: A.Parser ()
+skipRestOfLine :: Parser ()
 skipRestOfLine = do
-  A.takeTill A.isEndOfLine
-  A.endOfLine
+  takeTill isEndOfLine
+  endOfLine

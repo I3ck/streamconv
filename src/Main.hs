@@ -3,7 +3,7 @@
 module Main where
 
 import Conduit
-import Types
+--import Types
 import Instances ()
 import Sources
 import Transformers
@@ -14,7 +14,7 @@ import Sinks
 main :: IO ()
 main = do
   let bufferSize = 100
-
+{-
   runConduit $ 
        (yieldMany $ fmap (\i -> Position i (2*i) (3*i)) [0..10000000-1]) 
     .| xyzToStr bufferSize " " "\n" 
@@ -42,5 +42,10 @@ main = do
   runConduit $
        xyz "tmp/output1.xyz" " " "\n"
     .| plyBinarySink "tmp/outputBin.ply"
+-}
+  runConduit $
+       stl "tmp/stlascii.stl"
+    .| objToStr bufferSize
+    .| stringSink "tmp/outputstlstl.obj"
     
   pure ()

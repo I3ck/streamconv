@@ -1,5 +1,6 @@
 module Sources
   ( xyz 
+  , stl
   ) where
 
 import Types
@@ -22,4 +23,23 @@ xyz path delimval delimline = do
         A.Fail _ _ _ -> pure ()
         A.Done rest x -> do
           yield x
+          go rest
+
+--------------------------------------------------------------------------------
+
+--- TODO must later offer more information, like faces / normals
+stl :: String -> ConduitT () Position IO ()
+stl path = do
+  blob <- liftIO $ L.readFile path
+  let result = A.parse P.skipSTLAsciiHeader blob
+  case result of
+    A.Fail _ _ _  -> pure ()
+    A.Done rest _ -> go rest
+  where
+    go input = do
+      let result = A.parse P.stlFace input
+      case result of
+        A.Fail _ _ _ -> pure ()
+        A.Done rest (a, b, c) -> do
+          yieldMany [a, b, c]
           go rest
