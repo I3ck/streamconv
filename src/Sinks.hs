@@ -102,7 +102,7 @@ plyTripletAsciiSink path = do
     toStr v         = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) ++ " \n" --TODO use "showS trick"
     placeholderVs   = "element vertex 0\ncomment ##################################"
     placeholderFs   = "element face 0\ncomment ##################################"
-    printFace h fid = hPutStrLn h $ (show fid) ++ " " ++ (show $ 3*fid+0) ++ " " ++ (show $ 3*fid+1) ++ " " ++ (show $ 3*fid+2)
+    printFace h fid = hPutStrLn h $ "3 " ++ (show $ 3*fid+0) ++ " " ++ (show $ 3*fid+1) ++ " " ++ (show $ 3*fid+2)
     
 
 --------------------------------------------------------------------------------
