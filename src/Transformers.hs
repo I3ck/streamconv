@@ -2,12 +2,29 @@ module Transformers
   ( xyToStr
   , xyzToStr    
   , objToStr
+  , untriple
   ) where
 
 import Classes
 import Conduit
 
 ---TODO names are weird, think of something else
+
+--------------------------------------------------------------------------------
+
+untriple :: (Monad m) => ConduitT (a, a, a) a m ()
+untriple = go
+
+  where 
+    go = do
+      may <- await
+      case may of
+        Nothing        -> pure ()
+        Just (x, y, z) -> do
+          yield x
+          yield y
+          yield z
+          go
 
 --------------------------------------------------------------------------------
 

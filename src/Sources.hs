@@ -28,7 +28,7 @@ xyz path delimval delimline = do
 --------------------------------------------------------------------------------
 
 --- TODO must later offer more information, like faces / normals
-stl :: String -> ConduitT () Position IO ()
+stl :: String -> ConduitT () (Position, Position, Position) IO ()
 stl path = do
   blob <- liftIO $ L.readFile path
   let result = A.parse P.skipSTLAsciiHeader blob
@@ -40,6 +40,6 @@ stl path = do
       let result = A.parse P.stlFace input
       case result of
         A.Fail _ _ _ -> pure ()
-        A.Done rest (a, b, c) -> do
-          yieldMany [a, b, c]
+        A.Done rest x -> do
+          yield x
           go rest

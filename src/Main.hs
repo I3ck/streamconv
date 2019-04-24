@@ -45,7 +45,12 @@ main = do
 -}
   runConduit $
        stl "tmp/stlascii.stl"
+    .| untriple
     .| objToStr bufferSize
     .| stringSink "tmp/outputstlstl.obj"
+
+  runConduit $
+       stl "tmp/stlascii.stl"
+    .| plyTripletAsciiSink "tmp/outputstl.ply"
     
   pure ()

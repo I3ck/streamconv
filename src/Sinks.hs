@@ -2,6 +2,7 @@ module Sinks
   ( stringSink 
   , plyAsciiSink
   , plyBinarySink
+  , plyTripletAsciiSink
   ) where
 
 import Classes
@@ -58,6 +59,51 @@ plyAsciiSink path = do
     --- TODO have this helper rather in transformers? (Could already reuse a generalized version)
     toStr v     = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) ++ " \n" --TODO use "showS trick"
     placeholder = "element vertex 0\ncomment ##################################"
+
+--- TODO lots of duped code
+plyTripletAsciiSink :: (X a, Y a, Z a) => String -> ConduitT (a, a, a) Void IO ()
+plyTripletAsciiSink path = do
+  h <- liftIO $ openFile path WriteMode --TODO consider withFile
+  liftIO $ hPutStrLn h "ply"
+  liftIO $ hPutStrLn h "format ascii 1.0"
+  placeholderVsPos <- liftIO $ hTell h
+  liftIO $ hPutStrLn h placeholderVs
+  liftIO $ hPutStrLn h "property float x"
+  liftIO $ hPutStrLn h "property float y"
+  liftIO $ hPutStrLn h "property float z"
+  placeholderFsPos <- liftIO $ hTell h
+  liftIO $ hPutStrLn h placeholderFs
+  liftIO $ hPutStrLn h "property list uchar int vertex_index"
+  liftIO $ hPutStrLn h "end_header"
+  go h 0 placeholderVsPos placeholderFsPos
+  liftIO $ hClose h
+  where
+    --- TODO super messy now, cleanup
+    go h countFs placeholderVsPos placeholderFsPos = do
+      may <- await
+      case may of
+        Just (a, b, c) -> do
+          liftIO $ hPutStr h (toStr a)
+          liftIO $ hPutStr h (toStr b)
+          liftIO $ hPutStr h (toStr c)
+          go h (countFs+1) placeholderVsPos placeholderFsPos
+        Nothing -> do
+          let placeholderVslength = length placeholderVs
+              replacementVs       = "element vertex " ++ show (3 * countFs) ++ "\ncomment "
+              placeholderFslength = length placeholderFs
+              replacementFs       = "element face " ++ show countFs ++ "\ncomment "
+          liftIO $ mapM_ (printFace h) [0..countFs-1] --- TODO error if no faces!?
+          liftIO $ hSeek h AbsoluteSeek placeholderVsPos
+          liftIO $ hPutStrLn h $ replacementVs ++ replicate (placeholderVslength - length replacementVs) '#'
+          liftIO $ hSeek h AbsoluteSeek placeholderFsPos
+          liftIO $ hPutStrLn h $ replacementFs ++ replicate (placeholderFslength - length replacementFs) '#'
+
+    --- TODO have this helper rather in transformers? (Could already reuse a generalized version)
+    toStr v         = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) ++ " \n" --TODO use "showS trick"
+    placeholderVs   = "element vertex 0\ncomment ##################################"
+    placeholderFs   = "element face 0\ncomment ##################################"
+    printFace h fid = hPutStrLn h $ (show fid) ++ " " ++ (show $ 3*fid+0) ++ " " ++ (show $ 3*fid+1) ++ " " ++ (show $ 3*fid+2)
+    
 
 --------------------------------------------------------------------------------
 
