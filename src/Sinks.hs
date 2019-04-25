@@ -3,12 +3,14 @@ module Sinks
   , plyAsciiSink
   , plyBinarySink
   , plyTripletAsciiSink
+  , plyTripletBinarySink
   ) where
 
 import Classes
 import Data.Void
 import Conduit
 import System.IO
+import Data.Int
 import qualified Data.Binary.Put as P
 import qualified Data.ByteString.Lazy as BSL
 
@@ -150,6 +152,61 @@ plyBinarySink h = do
             hPutStrLn h $ replacement ++ replicate (placeholderlength - length replacement) '#'
 
     placeholder = "element vertex 0\ncomment ##################################"
+    
+plyTripletBinarySink :: (X a, Y a, Z a) => Handle -> ConduitT (a, a, a) Void IO ()
+plyTripletBinarySink h = do
+  liftIO $ hPutStrLn h $ unlines
+    [ "ply"
+    , "format binary_big_endian 1.0"
+    ]
+  placeholderVsPos <- liftIO $ hTell h
+  liftIO $ hPutStrLn h $ unlines
+    [ placeholderVs
+    , "property float x"
+    , "property float y"
+    , "property float z"
+    ]
+  placeholderFsPos <- liftIO $ hTell h
+  liftIO $ hPutStrLn h $ unlines
+    [ placeholderFs
+    , "property list uchar int vertex_index"
+    , "end_header"
+    ]
+  go 0 placeholderVsPos placeholderFsPos
+  where
+    --- TODO super messy now, cleanup
+    go countFs placeholderVsPos placeholderFsPos = do
+      may <- await
+      case may of
+        Just (a, b, c) -> do
+          liftIO $ do 
+            writeVertex a
+            writeVertex b
+            writeVertex c
+          go (countFs+1) placeholderVsPos placeholderFsPos
+        Nothing -> liftIO $ do
+          let placeholderVslength = length placeholderVs
+              replacementVs       = "element vertex " ++ show (3 * countFs) ++ "\ncomment "
+              placeholderFslength = length placeholderFs
+              replacementFs       = "element face " ++ show countFs ++ "\ncomment "
+          mapM_ writeFace [0..countFs-1] --- TODO error if no faces!?
+          hSeek h AbsoluteSeek placeholderVsPos
+          hPutStrLn h $ replacementVs ++ replicate (placeholderVslength - length replacementVs) '#'
+          hSeek h AbsoluteSeek placeholderFsPos
+          hPutStrLn h $ replacementFs ++ replicate (placeholderFslength - length replacementFs) '#'
+
+    --- TODO have this helper rather in transformers? (Could already reuse a generalized version)
+    placeholderVs = "element vertex 0\ncomment ##################################"
+    placeholderFs = "element face 0\ncomment ##################################"
+    writeFace fid = do
+      BSL.hPutStr h $ uchar2BSL 3
+      BSL.hPutStr h $ int2BSL (3*fid+0)
+      BSL.hPutStr h $ int2BSL (3*fid+1)
+      BSL.hPutStr h $ int2BSL (3*fid+2)
+    writeVertex v   = do
+      BSL.hPutStr h $ float2BSL $ realToFrac $ getx $ v
+      BSL.hPutStr h $ float2BSL $ realToFrac $ gety $ v
+      BSL.hPutStr h $ float2BSL $ realToFrac $ getz $ v
 
 --------------------------------------------------------------------------------
 
@@ -160,3 +217,9 @@ plyBinarySink h = do
 
 float2BSL :: Float -> BSL.ByteString
 float2BSL = P.runPut . P.putFloatbe
+
+uchar2BSL :: Int8 -> BSL.ByteString
+uchar2BSL = P.runPut . P.putInt8
+
+int2BSL :: Int32 -> BSL.ByteString
+int2BSL = P.runPut . P.putInt32be

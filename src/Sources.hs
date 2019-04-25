@@ -12,7 +12,7 @@ import Data.Attoparsec.Text.Lazy as A
 
 --------------------------------------------------------------------------------
 
---- TODO make these require handles
+--- TODO make these require handles?
 xyz :: String -> Text -> Text -> ConduitT () Position IO ()
 xyz path delimval delimline = do
     blob   <- liftIO $ L.readFile path
