@@ -16,15 +16,15 @@ import qualified Data.ByteString.Lazy as BSL
 
 stringSink :: Handle -> ConduitT String Void IO ()
 stringSink h = do
-  go h
+  go
   where
-    go h = do
+    go = do
       may <- await
       case may of
         Nothing -> pure ()
         Just x -> do
           liftIO $ hPutStr h x
-          go h
+          go
 
 --------------------------------------------------------------------------------
 
@@ -42,14 +42,14 @@ plyAsciiSink h = do
     , "property float z"
     , "end_header"
     ]
-  go h 0 placeholderPos
+  go 0 placeholderPos
   where
-    go h count placeholderPos = do
+    go count placeholderPos = do
       may <- await
       case may of
         Just x -> do
           liftIO $ hPutStr h (toStr x)
-          go h (count+1) placeholderPos
+          go (count+1) placeholderPos
         Nothing -> liftIO $ do
           let placeholderlength = length placeholder
               replacement = "element vertex " ++ show count ++ "\ncomment "
@@ -80,10 +80,10 @@ plyTripletAsciiSink h = do
     , "property list uchar int vertex_index"
     , "end_header"
     ]
-  go h 0 placeholderVsPos placeholderFsPos
+  go 0 placeholderVsPos placeholderFsPos
   where
     --- TODO super messy now, cleanup
-    go h countFs placeholderVsPos placeholderFsPos = do
+    go countFs placeholderVsPos placeholderFsPos = do
       may <- await
       case may of
         Just (a, b, c) -> do
@@ -91,7 +91,7 @@ plyTripletAsciiSink h = do
             hPutStr h (toStr a)
             hPutStr h (toStr b)
             hPutStr h (toStr c)
-          go h (countFs+1) placeholderVsPos placeholderFsPos
+          go (countFs+1) placeholderVsPos placeholderFsPos
         Nothing -> liftIO $ do
           let placeholderVslength = length placeholderVs
               replacementVs       = "element vertex " ++ show (3 * countFs) ++ "\ncomment "
@@ -130,9 +130,9 @@ plyBinarySink h = do
     , "property float z"
     , "end_header"
     ]
-  go h 0 placeholderPos
+  go 0 placeholderPos
   where
-    go h count placeholderPos = do
+    go count placeholderPos = do
       may <- await
       case may of
         Just v -> do
@@ -141,7 +141,7 @@ plyBinarySink h = do
             BSL.hPutStr h $ float2BSL $ realToFrac $ getx $ v
             BSL.hPutStr h $ float2BSL $ realToFrac $ gety $ v
             BSL.hPutStr h $ float2BSL $ realToFrac $ getz $ v
-          go h (count+1) placeholderPos
+          go (count+1) placeholderPos
         Nothing -> do
           let placeholderlength = length placeholder
               replacement = "element vertex " ++ show count ++ "\ncomment "
