@@ -32,12 +32,12 @@ stringSink h = do
 
 plyAsciiSink :: (X a, Y a, Z a) => Handle -> ConduitT a Void IO ()
 plyAsciiSink h = do
-  liftIO $ hPutStrLn h $ unlines 
+  liftIO $ hPutStr h $ unlines 
     [ "ply"
     , "format ascii 1.0"
     ]
   placeholderPos <- liftIO $ hTell h
-  liftIO $ hPutStrLn h $ unlines
+  liftIO $ hPutStr h $ unlines
     [ placeholder
     , "property float x"
     , "property float y"
@@ -65,19 +65,19 @@ plyAsciiSink h = do
 --- TODO lots of duped code
 plyTripletAsciiSink :: (X a, Y a, Z a) => Handle -> ConduitT (a, a, a) Void IO ()
 plyTripletAsciiSink h = do
-  liftIO $ hPutStrLn h $ unlines
+  liftIO $ hPutStr h $ unlines
     [ "ply"
     , "format ascii 1.0"
     ]
   placeholderVsPos <- liftIO $ hTell h
-  liftIO $ hPutStrLn h $ unlines
+  liftIO $ hPutStr h $ unlines
     [ placeholderVs
     , "property float x"
     , "property float y"
     , "property float z"
     ]
   placeholderFsPos <- liftIO $ hTell h
-  liftIO $ hPutStrLn h $ unlines
+  liftIO $ hPutStr h $ unlines
     [ placeholderFs
     , "property list uchar int vertex_index"
     , "end_header"
@@ -99,17 +99,17 @@ plyTripletAsciiSink h = do
               replacementVs       = "element vertex " ++ show (3 * countFs) ++ "\ncomment "
               placeholderFslength = length placeholderFs
               replacementFs       = "element face " ++ show countFs ++ "\ncomment "
-          mapM_ (printFace h) [0..countFs-1] --- TODO error if no faces!?
+          mapM_ printFace [0..countFs-1] --- TODO error if no faces!?
           hSeek h AbsoluteSeek placeholderVsPos
           hPutStrLn h $ replacementVs ++ replicate (placeholderVslength - length replacementVs) '#'
           hSeek h AbsoluteSeek placeholderFsPos
           hPutStrLn h $ replacementFs ++ replicate (placeholderFslength - length replacementFs) '#'
 
     --- TODO have this helper rather in transformers? (Could already reuse a generalized version)
-    toStr v         = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) ++ " \n" --TODO use "showS trick"
-    placeholderVs   = "element vertex 0\ncomment ##################################"
-    placeholderFs   = "element face 0\ncomment ##################################"
-    printFace h fid = hPutStrLn h $ "3 " ++ (show $ 3*fid+0) ++ " " ++ (show $ 3*fid+1) ++ " " ++ (show $ 3*fid+2)
+    toStr v       = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) ++ " \n" --TODO use "showS trick"
+    placeholderVs = "element vertex 0\ncomment ##################################"
+    placeholderFs = "element face 0\ncomment ##################################"
+    printFace fid = hPutStrLn h $ "3 " ++ (show $ 3*fid+0) ++ " " ++ (show $ 3*fid+1) ++ " " ++ (show $ 3*fid+2)
     
 
 --------------------------------------------------------------------------------
@@ -120,12 +120,12 @@ plyTripletAsciiSink h = do
 --- TODO lots of dupe code
 plyBinarySink :: (X a, Y a, Z a) => Handle -> ConduitT a Void IO ()
 plyBinarySink h = do
-  liftIO $ hPutStrLn h $ unlines
+  liftIO $ hPutStr h $ unlines
     [ "ply"
     , "format binary_big_endian 1.0"
     ]
   placeholderPos <- liftIO $ hTell h
-  liftIO $ hPutStrLn h $ unlines
+  liftIO $ hPutStr h $ unlines
     [ placeholder
     , "property float x"
     , "property float y"
@@ -155,19 +155,19 @@ plyBinarySink h = do
     
 plyTripletBinarySink :: (X a, Y a, Z a) => Handle -> ConduitT (a, a, a) Void IO ()
 plyTripletBinarySink h = do
-  liftIO $ hPutStrLn h $ unlines
+  liftIO $ hPutStr h $ unlines
     [ "ply"
     , "format binary_big_endian 1.0"
     ]
   placeholderVsPos <- liftIO $ hTell h
-  liftIO $ hPutStrLn h $ unlines
+  liftIO $ hPutStr h $ unlines
     [ placeholderVs
     , "property float x"
     , "property float y"
     , "property float z"
     ]
   placeholderFsPos <- liftIO $ hTell h
-  liftIO $ hPutStrLn h $ unlines
+  liftIO $ hPutStr h $ unlines
     [ placeholderFs
     , "property list uchar int vertex_index"
     , "end_header"
