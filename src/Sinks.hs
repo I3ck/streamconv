@@ -14,11 +14,9 @@ import qualified Data.ByteString.Lazy as BSL
 
 --------------------------------------------------------------------------------
 
-stringSink :: String -> ConduitT String Void IO ()
-stringSink path = do
-  h <- liftIO $ openFile path WriteMode --TODO consider withFile
+stringSink :: Handle -> ConduitT String Void IO ()
+stringSink h = do
   go h
-  liftIO $ hClose h
   where
     go h = do
       may <- await
@@ -30,9 +28,8 @@ stringSink path = do
 
 --------------------------------------------------------------------------------
 
-plyAsciiSink :: (X a, Y a, Z a) => String -> ConduitT a Void IO ()
-plyAsciiSink path = do
-  h <- liftIO $ openFile path WriteMode --TODO consider withFile
+plyAsciiSink :: (X a, Y a, Z a) => Handle -> ConduitT a Void IO ()
+plyAsciiSink h = do
   liftIO $ hPutStrLn h $ unlines 
     [ "ply"
     , "format ascii 1.0"
@@ -46,7 +43,6 @@ plyAsciiSink path = do
     , "end_header"
     ]
   go h 0 placeholderPos
-  liftIO $ hClose h
   where
     go h count placeholderPos = do
       may <- await
@@ -65,9 +61,8 @@ plyAsciiSink path = do
     placeholder = "element vertex 0\ncomment ##################################"
 
 --- TODO lots of duped code
-plyTripletAsciiSink :: (X a, Y a, Z a) => String -> ConduitT (a, a, a) Void IO ()
-plyTripletAsciiSink path = do
-  h <- liftIO $ openFile path WriteMode --TODO consider withFile
+plyTripletAsciiSink :: (X a, Y a, Z a) => Handle -> ConduitT (a, a, a) Void IO ()
+plyTripletAsciiSink h = do
   liftIO $ hPutStrLn h $ unlines
     [ "ply"
     , "format ascii 1.0"
@@ -86,7 +81,6 @@ plyTripletAsciiSink path = do
     , "end_header"
     ]
   go h 0 placeholderVsPos placeholderFsPos
-  liftIO $ hClose h
   where
     --- TODO super messy now, cleanup
     go h countFs placeholderVsPos placeholderFsPos = do
@@ -122,9 +116,8 @@ plyTripletAsciiSink path = do
 --- see http://hackage.haskell.org/package/cpu-0.1.2/docs/System-Endian.html
 --- also consider switching between float/double http://paulbourke.net/dataformats/ply/
 --- TODO lots of dupe code
-plyBinarySink :: (X a, Y a, Z a) => String -> ConduitT a Void IO ()
-plyBinarySink path = do
-  h <- liftIO $ openBinaryFile path WriteMode --TODO consider withFile
+plyBinarySink :: (X a, Y a, Z a) => Handle -> ConduitT a Void IO ()
+plyBinarySink h = do
   liftIO $ hPutStrLn h $ unlines
     [ "ply"
     , "format binary_big_endian 1.0"
@@ -138,7 +131,6 @@ plyBinarySink path = do
     , "end_header"
     ]
   go h 0 placeholderPos
-  liftIO $ hClose h
   where
     go h count placeholderPos = do
       may <- await

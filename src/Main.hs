@@ -8,6 +8,7 @@ import Instances ()
 import Sources
 import Transformers
 import Sinks
+import System.IO
 
 --------------------------------------------------------------------------------
 
@@ -43,14 +44,14 @@ main = do
        xyz "tmp/output1.xyz" " " "\n"
     .| plyBinarySink "tmp/outputBin.ply"
 -}
-  runConduit $
+  withFile "tmp/outputstlstl.obj" WriteMode (\h -> runConduit $
        stl "tmp/stlascii.stl"
     .| untriple
     .| objToStr bufferSize
-    .| stringSink "tmp/outputstlstl.obj"
+    .| stringSink h)
 
-  runConduit $
+  withFile "tmp/outputstl.ply" WriteMode (\h -> runConduit $
        stl "tmp/stlascii.stl"
-    .| plyTripletAsciiSink "tmp/outputstl.ply"
+    .| plyTripletAsciiSink h)
     
   pure ()
