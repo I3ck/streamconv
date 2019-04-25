@@ -33,14 +33,18 @@ stringSink path = do
 plyAsciiSink :: (X a, Y a, Z a) => String -> ConduitT a Void IO ()
 plyAsciiSink path = do
   h <- liftIO $ openFile path WriteMode --TODO consider withFile
-  liftIO $ hPutStrLn h "ply"
-  liftIO $ hPutStrLn h "format ascii 1.0"
+  liftIO $ hPutStrLn h $ unlines 
+    [ "ply"
+    , "format ascii 1.0"
+    ]
   placeholderPos <- liftIO $ hTell h
-  liftIO $ hPutStrLn h placeholder
-  liftIO $ hPutStrLn h "property float x"
-  liftIO $ hPutStrLn h "property float y"
-  liftIO $ hPutStrLn h "property float z"
-  liftIO $ hPutStrLn h "end_header"
+  liftIO $ hPutStrLn h $ unlines
+    [ placeholder
+    , "property float x"
+    , "property float y"
+    , "property float z"
+    , "end_header"
+    ]
   go h 0 placeholderPos
   liftIO $ hClose h
   where
@@ -50,11 +54,11 @@ plyAsciiSink path = do
         Just x -> do
           liftIO $ hPutStr h (toStr x)
           go h (count+1) placeholderPos
-        Nothing -> do
+        Nothing -> liftIO $ do
           let placeholderlength = length placeholder
               replacement = "element vertex " ++ show count ++ "\ncomment "
-          liftIO $ hSeek h AbsoluteSeek placeholderPos
-          liftIO $ hPutStrLn h $ replacement ++ replicate (placeholderlength - length replacement) '#'
+          hSeek h AbsoluteSeek placeholderPos
+          hPutStrLn h $ replacement ++ replicate (placeholderlength - length replacement) '#'
 
     --- TODO have this helper rather in transformers? (Could already reuse a generalized version)
     toStr v     = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) ++ " \n" --TODO use "showS trick"
@@ -64,17 +68,23 @@ plyAsciiSink path = do
 plyTripletAsciiSink :: (X a, Y a, Z a) => String -> ConduitT (a, a, a) Void IO ()
 plyTripletAsciiSink path = do
   h <- liftIO $ openFile path WriteMode --TODO consider withFile
-  liftIO $ hPutStrLn h "ply"
-  liftIO $ hPutStrLn h "format ascii 1.0"
+  liftIO $ hPutStrLn h $ unlines
+    [ "ply"
+    , "format ascii 1.0"
+    ]
   placeholderVsPos <- liftIO $ hTell h
-  liftIO $ hPutStrLn h placeholderVs
-  liftIO $ hPutStrLn h "property float x"
-  liftIO $ hPutStrLn h "property float y"
-  liftIO $ hPutStrLn h "property float z"
+  liftIO $ hPutStrLn h $ unlines
+    [ placeholderVs
+    , "property float x"
+    , "property float y"
+    , "property float z"
+    ]
   placeholderFsPos <- liftIO $ hTell h
-  liftIO $ hPutStrLn h placeholderFs
-  liftIO $ hPutStrLn h "property list uchar int vertex_index"
-  liftIO $ hPutStrLn h "end_header"
+  liftIO $ hPutStrLn h $ unlines
+    [ placeholderFs
+    , "property list uchar int vertex_index"
+    , "end_header"
+    ]
   go h 0 placeholderVsPos placeholderFsPos
   liftIO $ hClose h
   where
@@ -83,20 +93,21 @@ plyTripletAsciiSink path = do
       may <- await
       case may of
         Just (a, b, c) -> do
-          liftIO $ hPutStr h (toStr a)
-          liftIO $ hPutStr h (toStr b)
-          liftIO $ hPutStr h (toStr c)
+          liftIO $ do 
+            hPutStr h (toStr a)
+            hPutStr h (toStr b)
+            hPutStr h (toStr c)
           go h (countFs+1) placeholderVsPos placeholderFsPos
-        Nothing -> do
+        Nothing -> liftIO $ do
           let placeholderVslength = length placeholderVs
               replacementVs       = "element vertex " ++ show (3 * countFs) ++ "\ncomment "
               placeholderFslength = length placeholderFs
               replacementFs       = "element face " ++ show countFs ++ "\ncomment "
-          liftIO $ mapM_ (printFace h) [0..countFs-1] --- TODO error if no faces!?
-          liftIO $ hSeek h AbsoluteSeek placeholderVsPos
-          liftIO $ hPutStrLn h $ replacementVs ++ replicate (placeholderVslength - length replacementVs) '#'
-          liftIO $ hSeek h AbsoluteSeek placeholderFsPos
-          liftIO $ hPutStrLn h $ replacementFs ++ replicate (placeholderFslength - length replacementFs) '#'
+          mapM_ (printFace h) [0..countFs-1] --- TODO error if no faces!?
+          hSeek h AbsoluteSeek placeholderVsPos
+          hPutStrLn h $ replacementVs ++ replicate (placeholderVslength - length replacementVs) '#'
+          hSeek h AbsoluteSeek placeholderFsPos
+          hPutStrLn h $ replacementFs ++ replicate (placeholderFslength - length replacementFs) '#'
 
     --- TODO have this helper rather in transformers? (Could already reuse a generalized version)
     toStr v         = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) ++ " \n" --TODO use "showS trick"
@@ -114,14 +125,18 @@ plyTripletAsciiSink path = do
 plyBinarySink :: (X a, Y a, Z a) => String -> ConduitT a Void IO ()
 plyBinarySink path = do
   h <- liftIO $ openBinaryFile path WriteMode --TODO consider withFile
-  liftIO $ hPutStrLn h "ply"
-  liftIO $ hPutStrLn h "format binary_big_endian 1.0"
+  liftIO $ hPutStrLn h $ unlines
+    [ "ply"
+    , "format binary_big_endian 1.0"
+    ]
   placeholderPos <- liftIO $ hTell h
-  liftIO $ hPutStrLn h placeholder
-  liftIO $ hPutStrLn h "property float x"
-  liftIO $ hPutStrLn h "property float y"
-  liftIO $ hPutStrLn h "property float z"
-  liftIO $ hPutStrLn h "end_header"
+  liftIO $ hPutStrLn h $ unlines
+    [ placeholder
+    , "property float x"
+    , "property float y"
+    , "property float z"
+    , "end_header"
+    ]
   go h 0 placeholderPos
   liftIO $ hClose h
   where
@@ -130,15 +145,17 @@ plyBinarySink path = do
       case may of
         Just v -> do
           ---TODO likely very inefficient, at least use 'runPut' only once for all 3
-          liftIO $ BSL.hPutStr h $ float2BSL $ realToFrac $ getx $ v
-          liftIO $ BSL.hPutStr h $ float2BSL $ realToFrac $ gety $ v
-          liftIO $ BSL.hPutStr h $ float2BSL $ realToFrac $ getz $ v
+          liftIO $ do 
+            BSL.hPutStr h $ float2BSL $ realToFrac $ getx $ v
+            BSL.hPutStr h $ float2BSL $ realToFrac $ gety $ v
+            BSL.hPutStr h $ float2BSL $ realToFrac $ getz $ v
           go h (count+1) placeholderPos
         Nothing -> do
           let placeholderlength = length placeholder
               replacement = "element vertex " ++ show count ++ "\ncomment "
-          liftIO $ hSeek h AbsoluteSeek placeholderPos
-          liftIO $ hPutStrLn h $ replacement ++ replicate (placeholderlength - length replacement) '#'
+          liftIO $ do 
+            hSeek h AbsoluteSeek placeholderPos
+            hPutStrLn h $ replacement ++ replicate (placeholderlength - length replacement) '#'
 
     placeholder = "element vertex 0\ncomment ##################################"
 
