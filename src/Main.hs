@@ -57,5 +57,9 @@ main = do
   withFile "tmp/outputstlBIN.ply" WriteMode (\h -> runConduit $
        stl "tmp/stlascii.stl"
     .| plyTripletBinarySink h)
+
+  withFile "tmp/outputstlSTLASCII.stl" WriteMode (\h -> runConduit $
+       stl "tmp/stlascii.stl"
+    .| stlAsciiSink h)
     
   pure ()

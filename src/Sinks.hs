@@ -4,6 +4,7 @@ module Sinks
   , plyBinarySink
   , plyTripletAsciiSink
   , plyTripletBinarySink
+  , stlAsciiSink
   ) where
 
 import Classes
@@ -61,6 +62,34 @@ plyAsciiSink h = do
     --- TODO have this helper rather in transformers? (Could already reuse a generalized version)
     toStr v     = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) ++ " \n" --TODO use "showS trick"
     placeholder = "element vertex 0\ncomment ##################################"
+
+--------------------------------------------------------------------------------
+
+--- TODO later require optional normals
+stlAsciiSink :: (X a, Y a, Z a) => Handle -> ConduitT (a, a, a) Void IO ()
+stlAsciiSink h = do
+  liftIO $ hPutStrLn h "solid " 
+  go
+  where
+    go = do
+      may <- await
+      case may of
+        Just (a, b, c) -> do
+          liftIO $ do
+            hPutStrLn h "facet normal 0.0 0.0 0.0" --TODO later write normals
+            hPutStrLn h "    outer loop"
+            hPutStrLn h (toStr a)
+            hPutStrLn h (toStr b)
+            hPutStrLn h (toStr c)
+            hPutStrLn h "    endloop"
+            hPutStrLn h "endfacet"
+          go
+        Nothing -> do
+          liftIO $ hPutStrLn h "endsolid "
+          pure ()
+    toStr v = "        vertex " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) 
+
+
 
 --- TODO lots of duped code
 plyTripletAsciiSink :: (X a, Y a, Z a) => Handle -> ConduitT (a, a, a) Void IO ()
