@@ -169,9 +169,9 @@ plyBinarySink h = do
         Just v -> do
           ---TODO likely very inefficient, at least use 'runPut' only once for all 3
           liftIO $ do 
-            BSL.hPutStr h $ float2BSL $ realToFrac $ getx $ v
-            BSL.hPutStr h $ float2BSL $ realToFrac $ gety $ v
-            BSL.hPutStr h $ float2BSL $ realToFrac $ getz $ v
+            BSL.hPutStr h $ float2beBSL $ realToFrac $ getx $ v
+            BSL.hPutStr h $ float2beBSL $ realToFrac $ gety $ v
+            BSL.hPutStr h $ float2beBSL $ realToFrac $ getz $ v
           go (count+1) placeholderPos
         Nothing -> do
           let placeholderlength = length placeholder
@@ -229,13 +229,13 @@ plyTripletBinarySink h = do
     placeholderFs = "element face 0\ncomment ##################################"
     writeFace fid = do
       BSL.hPutStr h $ uchar2BSL 3
-      BSL.hPutStr h $ int2BSL (3*fid+0)
-      BSL.hPutStr h $ int2BSL (3*fid+1)
-      BSL.hPutStr h $ int2BSL (3*fid+2)
+      BSL.hPutStr h $ int2beBSL (3*fid+0)
+      BSL.hPutStr h $ int2beBSL (3*fid+1)
+      BSL.hPutStr h $ int2beBSL (3*fid+2)
     writeVertex v   = do
-      BSL.hPutStr h $ float2BSL $ realToFrac $ getx $ v
-      BSL.hPutStr h $ float2BSL $ realToFrac $ gety $ v
-      BSL.hPutStr h $ float2BSL $ realToFrac $ getz $ v
+      BSL.hPutStr h $ float2beBSL $ realToFrac $ getx $ v
+      BSL.hPutStr h $ float2beBSL $ realToFrac $ gety $ v
+      BSL.hPutStr h $ float2beBSL $ realToFrac $ getz $ v
 
 --------------------------------------------------------------------------------
 
@@ -244,11 +244,11 @@ plyTripletBinarySink h = do
 --double2BSL :: Double -> BSL.ByteString
 --double2BSL = P.runPut . P.putDoublebe
 
-float2BSL :: Float -> BSL.ByteString
-float2BSL = P.runPut . P.putFloatbe
+float2beBSL :: Float -> BSL.ByteString
+float2beBSL = P.runPut . P.putFloatbe
 
 uchar2BSL :: Int8 -> BSL.ByteString
 uchar2BSL = P.runPut . P.putInt8
 
-int2BSL :: Int32 -> BSL.ByteString
-int2BSL = P.runPut . P.putInt32be
+int2beBSL :: Int32 -> BSL.ByteString
+int2beBSL = P.runPut . P.putInt32be
