@@ -5,6 +5,7 @@ module Sinks
   , plyTripletAsciiSink
   , plyTripletBinarySink
   , stlAsciiSink
+  , stlBinarySink
   ) where
 
 import Classes
@@ -88,6 +89,38 @@ stlAsciiSink h = do
           liftIO $ hPutStrLn h "endsolid "
           pure ()
     toStr v = "        vertex " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) 
+
+--- TODO later require optional normals
+--- TODO possibly will require usage of unsigned integers!!!!!
+stlBinarySink :: (X a, Y a, Z a) => Handle -> ConduitT (a, a, a) Void IO ()
+stlBinarySink h = do
+  liftIO $ mapM_ (\_ -> BSL.hPutStr h $ uchar2BSL 0) [0..79] 
+  placeholderPos <- liftIO $ hTell h
+  liftIO $ BSL.hPutStr h $ int2leBSL 0
+  go placeholderPos 0
+  where
+    go placeholderPos count = do
+      may <- await
+      case may of
+        Just (a, b, c) -> do
+          liftIO $ do
+            write 0.0 --TODO later write normal data
+            write 0.0
+            write 0.0
+            writeV a
+            writeV b
+            writeV c
+            BSL.hPutStr h $ int16ToleBSL 0
+          go placeholderPos (count+1)
+        Nothing -> do
+          liftIO $ hSeek h AbsoluteSeek placeholderPos
+          liftIO $ BSL.hPutStr h $ int2leBSL count
+          pure ()
+    writeV v = do
+      write $ realToFrac $ getx $ v
+      write $ realToFrac $ gety $ v
+      write $ realToFrac $ getz $ v
+    write d  = BSL.hPutStr h $ float2leBSL d
 
 
 
@@ -244,11 +277,21 @@ plyTripletBinarySink h = do
 --double2BSL :: Double -> BSL.ByteString
 --double2BSL = P.runPut . P.putDoublebe
 
+---TODO precision in method names
 float2beBSL :: Float -> BSL.ByteString
 float2beBSL = P.runPut . P.putFloatbe
+
+float2leBSL :: Float -> BSL.ByteString
+float2leBSL = P.runPut . P.putFloatle
 
 uchar2BSL :: Int8 -> BSL.ByteString
 uchar2BSL = P.runPut . P.putInt8
 
 int2beBSL :: Int32 -> BSL.ByteString
 int2beBSL = P.runPut . P.putInt32be
+
+int2leBSL :: Int32 -> BSL.ByteString
+int2leBSL = P.runPut . P.putInt32le
+
+int16ToleBSL :: Int16 -> BSL.ByteString
+int16ToleBSL = P.runPut . P.putInt16le

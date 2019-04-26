@@ -61,5 +61,9 @@ main = do
   withFile "tmp/outputstlSTLASCII.stl" WriteMode (\h -> runConduit $
        stl "tmp/stlascii.stl"
     .| stlAsciiSink h)
+
+  withFile "tmp/outputstlSTLbinary.stl" WriteMode (\h -> runConduit $
+       stl "tmp/stlascii.stl"
+    .| stlBinarySink h)
     
   pure ()
