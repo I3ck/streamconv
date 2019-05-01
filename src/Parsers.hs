@@ -6,6 +6,8 @@ module Parsers
   , stlFace
   , plyVertex
   , plyFace
+  , plyComment
+  , plyHeader
   ) where
 
 import Types
@@ -97,6 +99,20 @@ plyFace = do
   c <- decimal
   skipRestOfLine
   pure $ Face a b c
+
+--------------------------------------------------------------------------------
+
+plyComment :: Parser ()
+plyComment = do
+  string "comment"
+  skipRestOfLine
+
+--------------------------------------------------------------------------------
+---TODO should fail if format does not match what's expected
+plyHeader :: Parser ()
+plyHeader = do
+  manyTill anyChar (string "end_header")
+  skipRestOfLine
 
 --------------------------------------------------------------------------------
 
