@@ -76,5 +76,10 @@ main = do
     runConduit $
          stl blob     
       .| stlBinarySink h)
+
+  withFile "tmp/outputstlAgain.ply" WriteMode (\h -> do
+    (cv, cf) <- ply "tmp/outputstl.ply"
+    plyAsciiSink' h cv cf
+    )
     
   pure ()
