@@ -6,17 +6,14 @@ module Sources
 import Types
 import Conduit
 import Data.Text
-import qualified Data.Text.Lazy.IO as L
+import qualified Data.Text.Lazy as L
 import qualified Parsers as P
 import Data.Attoparsec.Text.Lazy as A
 
 --------------------------------------------------------------------------------
 
---- TODO make these require handles?
-xyz :: String -> Text -> Text -> ConduitT () Position IO ()
-xyz path delimval delimline = do
-    blob   <- liftIO $ L.readFile path
-    go blob
+xyz :: (Monad m) => L.Text -> Text -> Text -> ConduitT () Position m ()
+xyz blob delimval delimline = go blob
   where
     go input = do
       let result = A.parse (P.xyzLine delimval delimline) input
@@ -28,10 +25,8 @@ xyz path delimval delimline = do
 
 --------------------------------------------------------------------------------
 
---- TODO must later offer more information, like faces / normals
-stl :: String -> ConduitT () (Position, Position, Position) IO ()
-stl path = do
-  blob <- liftIO $ L.readFile path
+stl :: (Monad m) => L.Text -> ConduitT () (Position, Position, Position) m ()
+stl blob = do
   let result = A.parse P.skipSTLAsciiHeader blob
   case result of
     A.Fail _ _ _  -> pure ()

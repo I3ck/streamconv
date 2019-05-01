@@ -9,6 +9,7 @@ import Sources
 import Transformers
 import Sinks
 import System.IO
+import qualified Data.Text.Lazy.IO as LIO
 
 --------------------------------------------------------------------------------
 
@@ -44,26 +45,36 @@ main = do
        xyz "tmp/output1.xyz" " " "\n"
     .| plyBinarySink "tmp/outputBin.ply"
 -}
-  withFile "tmp/outputstlstl.obj" WriteMode (\h -> runConduit $
-       stl "tmp/stlascii.stl"
-    .| untriple
-    .| objToStr bufferSize
-    .| stringSink h)
+  withFile "tmp/outputstlstl.obj" WriteMode (\h -> do
+    blob <- LIO.readFile "tmp/stlascii.stl"
+    runConduit $
+         stl blob
+      .| untriple
+      .| objToStr bufferSize
+      .| stringSink h)
 
-  withFile "tmp/outputstl.ply" WriteMode (\h -> runConduit $
-       stl "tmp/stlascii.stl"
-    .| plyTripletAsciiSink h)
+  withFile "tmp/outputstl.ply" WriteMode (\h -> do
+    blob <- (LIO.readFile "tmp/stlascii.stl") 
+    runConduit $
+         stl blob
+      .| plyTripletAsciiSink h)
 
-  withFile "tmp/outputstlBIN.ply" WriteMode (\h -> runConduit $
-       stl "tmp/stlascii.stl"
-    .| plyTripletBinarySink h)
+  withFile "tmp/outputstlBIN.ply" WriteMode (\h -> do
+    blob <- LIO.readFile "tmp/stlascii.stl"
+    runConduit $
+         stl blob
+      .| plyTripletBinarySink h)
 
-  withFile "tmp/outputstlSTLASCII.stl" WriteMode (\h -> runConduit $
-       stl "tmp/stlascii.stl"
-    .| stlAsciiSink h)
+  withFile "tmp/outputstlSTLASCII.stl" WriteMode (\h -> do 
+    blob <- LIO.readFile "tmp/stlascii.stl"
+    runConduit $
+         stl blob
+      .| stlAsciiSink h)
 
-  withFile "tmp/outputstlSTLbinary.stl" WriteMode (\h -> runConduit $
-       stl "tmp/stlascii.stl"
-    .| stlBinarySink h)
+  withFile "tmp/outputstlSTLbinary.stl" WriteMode (\h -> do
+    blob <- LIO.readFile "tmp/stlascii.stl"
+    runConduit $
+         stl blob     
+      .| stlBinarySink h)
     
   pure ()
