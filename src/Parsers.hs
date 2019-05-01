@@ -109,6 +109,7 @@ plyComment = do
 
 --------------------------------------------------------------------------------
 ---TODO should fail if format does not match what's expected
+---TODO add skip to name?
 plyHeader :: Parser ()
 plyHeader = do
   manyTill anyChar (string "end_header")
