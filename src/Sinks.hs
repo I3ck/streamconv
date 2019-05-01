@@ -11,7 +11,6 @@ module Sinks
 
 import Types
 import Classes
-import qualified Data.Conduit.Combinators as C
 import Data.Void
 import Conduit
 import System.IO
@@ -200,8 +199,8 @@ plyAsciiSink' h cv cf = do
     , "property list uchar int vertex_index"
     , "end_header"
     ]
-  countVs <- runConduit $ cv .| plyOnlyVertex h .| C.length
-  countFs <- runConduit $ cf .| plyOnlyFace h   .| C.length
+  countVs <- runConduit $ cv .| plyOnlyVertex h
+  countFs <- runConduit $ cf .| plyOnlyFace h
   let placeholderVslength = length placeholderVs
       replacementVs       = "element vertex " ++ show countVs ++ "\ncomment "
       placeholderFslength = length placeholderFs
@@ -216,30 +215,30 @@ plyAsciiSink' h cv cf = do
     placeholderFs = "element face 0\ncomment ##################################"
 
 -- assumes handle at right pos
-plyOnlyVertex :: (X a, Y a, Z a) => Handle -> ConduitT a Void IO ()
-plyOnlyVertex h = go
+plyOnlyVertex :: (X a, Y a, Z a) => Handle -> ConduitT a Void IO Int
+plyOnlyVertex h = go 0
   where
-    go = do
+    go count = do
       may <- await
       case may of
         Just v  -> do 
           liftIO $ hPutStrLn h $ toStr v
-          go
-        Nothing -> pure ()
+          go $ count+1
+        Nothing -> pure count
     toStr v = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) --TODO use "showS trick"
 
 -- assumes handle at right pos
-plyOnlyFace :: Handle -> ConduitT Face Void IO ()
-plyOnlyFace h = go
+plyOnlyFace :: Handle -> ConduitT Face Void IO Int
+plyOnlyFace h = go 0
   where
-    go = do
+    go count = do
       may <- await
       case may of
         Just v  -> do 
-          liftIO $ hPutStrLn h $ toStr v
-          go
-        Nothing -> pure ()
-    toStr (Face a b c) = "3 " ++ show a ++ " " ++ show b ++ " " ++ show c
+          liftIO $ hPutStr h $ toStr v
+          go $ count+1
+        Nothing -> pure count
+    toStr (Face a b c) = "3 " ++ show a ++ " " ++ show b ++ " " ++ show c ++ "\n"
 
 --------------------------------------------------------------------------------
 

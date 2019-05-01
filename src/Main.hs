@@ -77,6 +77,7 @@ main = do
          stl blob     
       .| stlBinarySink h)
 
+  -- CURRENTLY FAILS, SEE TODO
   withFile "tmp/outputstlAgain.ply" WriteMode (\h -> do
     (cv, cf) <- ply "tmp/outputstl.ply"
     plyAsciiSink' h cv cf
