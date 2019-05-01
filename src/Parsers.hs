@@ -4,6 +4,8 @@ module Parsers
   ( xyzLine
   , skipSTLAsciiHeader
   , stlFace
+  , plyVertex
+  , plyFace
   ) where
 
 import Types
@@ -67,8 +69,34 @@ stlFace = do
       skipRestOfLine
       pure $ Position x y z
 
+--------------------------------------------------------------------------------
 
+--- TODO currently assumes x y z and skipping rest of line
+--- TODO won't do in final version, must be able to order freely
+plyVertex :: Parser Position
+plyVertex = do
+  x <- double
+  skipSpace
+  y <- double
+  skipSpace
+  z <- double
+  skipRestOfLine --- TODO assumes x y z then nothing
+  pure $ Position x y z
 
+--------------------------------------------------------------------------------
+
+--- TODO assumes 3 index faces
+plyFace :: Parser Face
+plyFace = do
+  string "3"
+  skipSpace
+  a <- decimal
+  skipSpace
+  b <- decimal
+  skipSpace
+  c <- decimal
+  skipRestOfLine
+  pure $ Face a b c
 
 --------------------------------------------------------------------------------
 

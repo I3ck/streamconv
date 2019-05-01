@@ -9,3 +9,5 @@ test binary formats next
 
 pass handle into sinks from outside, making it easier to stream from multiple conduits
 this also makes sources easier, since the parsers can just keep on going
+
+some parsers require an empty line at the end of the input (skipRestOfLine the newline should be optional)

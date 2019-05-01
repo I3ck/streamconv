@@ -13,3 +13,9 @@ data Normal = Normal
   , j :: Double
   , k :: Double
   } deriving (Show)
+
+data Face = Face
+  { a :: Int
+  , b :: Int
+  , c :: Int
+  } deriving (Show)
