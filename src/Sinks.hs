@@ -1,6 +1,7 @@
 module Sinks
   ( stringSink 
   , plyAsciiSink
+  , plyAsciiSink'
   , plyBinarySink
   , plyTripletAsciiSink
   , plyTripletBinarySink
@@ -8,7 +9,9 @@ module Sinks
   , stlBinarySink
   ) where
 
+import Types
 import Classes
+import qualified Data.Conduit.Combinators as C
 import Data.Void
 import Conduit
 import System.IO
@@ -173,6 +176,70 @@ plyTripletAsciiSink h = do
     placeholderFs = "element face 0\ncomment ##################################"
     printFace fid = hPutStrLn h $ "3 " ++ (show $ 3*fid+0) ++ " " ++ (show $ 3*fid+1) ++ " " ++ (show $ 3*fid+2)
     
+--------------------------------------------------------------------------------
+---TODO rename
+---TODO implement
+---TODO move somewhere else since signature doesnt match?
+plyAsciiSink' :: (X a, Y a, Z a) => Handle -> ConduitT () a IO () -> ConduitT () Face IO () -> IO ()
+plyAsciiSink' h cv cf = do
+  -- TODO lots of duped code
+  liftIO $ hPutStr h $ unlines
+    [ "ply"
+    , "format ascii 1.0"
+    ]
+  placeholderVsPos <- liftIO $ hTell h
+  liftIO $ hPutStr h $ unlines
+    [ placeholderVs
+    , "property float x"
+    , "property float y"
+    , "property float z"
+    ]
+  placeholderFsPos <- liftIO $ hTell h
+  liftIO $ hPutStr h $ unlines
+    [ placeholderFs
+    , "property list uchar int vertex_index"
+    , "end_header"
+    ]
+  countVs <- runConduit $ cv .| plyOnlyVertex h .| C.length
+  countFs <- runConduit $ cf .| plyOnlyFace h   .| C.length
+  let placeholderVslength = length placeholderVs
+      replacementVs       = "element vertex " ++ show countVs ++ "\ncomment "
+      placeholderFslength = length placeholderFs
+      replacementFs       = "element face " ++ show countFs ++ "\ncomment "
+  hSeek h AbsoluteSeek placeholderVsPos
+  hPutStrLn h $ replacementVs ++ replicate (placeholderVslength - length replacementVs) '#'
+  hSeek h AbsoluteSeek placeholderFsPos
+  hPutStrLn h $ replacementFs ++ replicate (placeholderFslength - length replacementFs) '#'
+
+  where --TODO these must be helper methods elsewhere
+    placeholderVs = "element vertex 0\ncomment ##################################"
+    placeholderFs = "element face 0\ncomment ##################################"
+
+-- assumes handle at right pos
+plyOnlyVertex :: (X a, Y a, Z a) => Handle -> ConduitT a Void IO ()
+plyOnlyVertex h = go
+  where
+    go = do
+      may <- await
+      case may of
+        Just v  -> do 
+          liftIO $ hPutStrLn h $ toStr v
+          go
+        Nothing -> pure ()
+    toStr v = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) --TODO use "showS trick"
+
+-- assumes handle at right pos
+plyOnlyFace :: Handle -> ConduitT Face Void IO ()
+plyOnlyFace h = go
+  where
+    go = do
+      may <- await
+      case may of
+        Just v  -> do 
+          liftIO $ hPutStrLn h $ toStr v
+          go
+        Nothing -> pure ()
+    toStr (Face a b c) = "3 " ++ show a ++ " " ++ show b ++ " " ++ show c
 
 --------------------------------------------------------------------------------
 
