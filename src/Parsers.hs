@@ -82,7 +82,9 @@ plyVertex = do
   y <- double
   skipSpace
   z <- double
-  skipRestOfLine --- TODO assumes x y z then nothing
+  --todo enforce exactly 3 values here to not match on face definitions for now
+  skipInlineSpace --- TODO assumes x y z then nothing
+  endOfLine
   pure $ Position x y z
 
 --------------------------------------------------------------------------------
@@ -117,7 +119,14 @@ plyHeader = do
 
 --------------------------------------------------------------------------------
 
-skipRestOfLine :: Parser ()
+skipRestOfLine :: Parser () ---TODO consider usage of skipInlineSpace to endOfLine
 skipRestOfLine = do
   takeTill isEndOfLine
   endOfLine
+
+--------------------------------------------------------------------------------
+
+skipInlineSpace :: Parser ()
+skipInlineSpace = do 
+  many' $ skip (\x -> x == ' ' || x == '\t')
+  pure ()
