@@ -14,3 +14,7 @@ some parsers require an empty line at the end of the input (skipRestOfLine the n
 
 plyVertex parser also consumes the index list, should either parse at most N elements or disallow non-floating
 -> use try or <|> in combination with decimal to only allow real doubles
+
+proper testing framework
+
+laserscanner formats

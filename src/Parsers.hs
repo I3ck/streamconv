@@ -32,7 +32,7 @@ xyzLine delimval delimline = do
 skipSTLAsciiHeader :: Parser ()
 skipSTLAsciiHeader = do
   string "solid"
-  skipRestOfLine
+  skipAllRestOfLine
 
 --------------------------------------------------------------------------------
   
@@ -42,7 +42,7 @@ stlFace :: Parser (Position, Position, Position)
 stlFace = do
   skipSpace
   string "facet normal"
-  skipRestOfLine --TODO later parse normals here
+  skipAllRestOfLine --TODO later parse normals here
   skipSpace
   string "outer loop"
   skipRestOfLine
@@ -55,7 +55,7 @@ stlFace = do
   skipSpace
   string "endfacet"
   skipRestOfLine
-  pure $ (a, b, c)
+  pure (a, b, c)
 
   where
     vertex :: Parser Position
@@ -83,8 +83,7 @@ plyVertex = do
   skipSpace
   z <- double
   --todo enforce exactly 3 values here to not match on face definitions for now
-  skipInlineSpace --- TODO assumes x y z then nothing
-  endOfLine
+  skipRestOfLine--- TODO assumes x y z then nothing
   pure $ Position x y z
 
 --------------------------------------------------------------------------------
@@ -107,7 +106,7 @@ plyFace = do
 plyComment :: Parser ()
 plyComment = do
   string "comment"
-  skipRestOfLine
+  skipAllRestOfLine
 
 --------------------------------------------------------------------------------
 ---TODO should fail if format does not match what's expected
@@ -119,8 +118,15 @@ plyHeader = do
 
 --------------------------------------------------------------------------------
 
-skipRestOfLine :: Parser () ---TODO consider usage of skipInlineSpace to endOfLine
+skipRestOfLine :: Parser () --TODO consider rename (skips any space till end of line and that end of line)
 skipRestOfLine = do
+  skipInlineSpace
+  endOfLine
+
+--------------------------------------------------------------------------------
+
+skipAllRestOfLine :: Parser () --TODO consider rename (skips everything and end of line)
+skipAllRestOfLine = do
   takeTill isEndOfLine
   endOfLine
 
