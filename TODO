@@ -18,3 +18,5 @@ plyVertex parser also consumes the index list, should either parse at most N ele
 proper testing framework
 
 laserscanner formats
+
+obj face indices start at 1 !

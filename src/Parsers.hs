@@ -8,6 +8,9 @@ module Parsers
   , plyFace
   , plyComment
   , plyHeader
+  , objComment
+  , objVertex
+  , objFace
   ) where
 
 import Types
@@ -115,6 +118,43 @@ plyHeader :: Parser ()
 plyHeader = do
   manyTill anyChar (string "end_header")
   skipRestOfLine
+
+--------------------------------------------------------------------------------
+
+objComment :: Parser ()
+objComment = do
+  string "#"
+  skipAllRestOfLine
+
+--------------------------------------------------------------------------------
+
+objVertex :: Parser Position
+objVertex = do
+  string "v"
+  skipSpace
+  x <- double
+  skipSpace
+  y <- double
+  skipSpace
+  z <- double
+  skipAllRestOfLine --- TODO consider reading W component
+  pure $ Position x y z
+
+--------------------------------------------------------------------------------
+
+--- TODO assumes only the vertex syntax
+--- would fail if normal or texture index is passed
+objFace :: Parser Face
+objFace = do
+  string "f"
+  skipSpace
+  a <- decimal
+  skipSpace
+  b <- decimal
+  skipSpace
+  c <- decimal
+  skipRestOfLine
+  pure $ Face a b c
 
 --------------------------------------------------------------------------------
 
