@@ -82,5 +82,10 @@ main = do
     (cv, cf) <- ply "tmp/outputstl.ply"
     plyAsciiSink' h cv cf
     )
+
+  withFile "tmp/objFile.ply" WriteMode (\h -> do
+    (cv, cf) <- obj "tmp/obj.obj"
+    plyAsciiSink' h cv cf
+    )
     
   pure ()

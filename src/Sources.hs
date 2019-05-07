@@ -2,6 +2,7 @@ module Sources
   ( xyz 
   , stl
   , ply
+  , obj
   ) where
 
 import Types
@@ -63,6 +64,46 @@ plyVertices blob = do
   where
     go input = do
       let result = A.parse P.plyVertex input
+      case result of
+        A.Fail _ _ _ -> pure ()
+        A.Done rest x -> do
+          yield x
+          go rest
+
+--------------------------------------------------------------------------------
+
+obj:: (Monad m) => String -> IO (ConduitT () Position m (), ConduitT () Face m ())
+obj path = do
+  -- important to read file twice to ensure no space leak
+  bloba <- liftIO $ LIO.readFile path
+  blobb <- liftIO $ LIO.readFile path
+  pure (objVertices bloba, objFaces blobb)
+
+--------------------------------------------------------------------------------
+---TODO must skip comments
+objVertices :: (Monad m) => L.Text -> ConduitT () Position m ()
+objVertices = go
+  where
+    go input = do
+      let result = A.parse P.objVertex input
+      case result of
+        A.Fail _ _ _ -> pure ()
+        A.Done rest x -> do
+          yield x
+          go rest
+
+--------------------------------------------------------------------------------
+
+-- TODO must skip comments
+objFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
+objFaces blob = do
+  let result = A.parse (many' P.objVertex) blob --- TODO obj not strictly ordered
+  case result of
+    A.Fail _ _ _  -> pure ()
+    A.Done rest _ -> go rest
+  where
+    go input = do
+      let result = A.parse P.objFace input
       case result of
         A.Fail _ _ _ -> pure ()
         A.Done rest x -> do
