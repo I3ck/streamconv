@@ -80,7 +80,7 @@ obj path = do
   pure (objVertices bloba, objFaces blobb)
 
 --------------------------------------------------------------------------------
----TODO must skip comments
+--- TODO wont work if faces and vertices not in expected order, required in format?
 objVertices :: (Monad m) => L.Text -> ConduitT () Position m ()
 objVertices = go
   where
@@ -94,7 +94,7 @@ objVertices = go
 
 --------------------------------------------------------------------------------
 
--- TODO must skip comments
+--- TODO wont work if faces and vertices not in expected order, required in format?
 objFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
 objFaces blob = do
   let result = A.parse (many' P.objVertex) blob --- TODO obj not strictly ordered

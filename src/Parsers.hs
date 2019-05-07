@@ -130,6 +130,7 @@ objComment = do
 
 objVertex :: Parser Position
 objVertex = do
+  skipObjComments
   string "v"
   skipSpace
   x <- double
@@ -144,8 +145,10 @@ objVertex = do
 
 --- TODO assumes only the vertex syntax
 --- would fail if normal or texture index is passed
+--- TODO doesnt allow negative indices of obj / doesnt convert correctly
 objFace :: Parser Face
 objFace = do
+  skipObjComments
   string "f"
   skipSpace
   a <- decimal
@@ -154,7 +157,14 @@ objFace = do
   skipSpace
   c <- decimal
   skipRestOfLine
-  pure $ Face a b c
+  pure $ Face (a-1) (b-1) (c-1) -- obj indexed starting at 1
+
+--------------------------------------------------------------------------------
+
+skipObjComments :: Parser ()
+skipObjComments = do 
+  many' (skipSpace >> objComment >> skipSpace)
+  pure ()
 
 --------------------------------------------------------------------------------
 
