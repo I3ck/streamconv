@@ -18,10 +18,8 @@ import Data.Attoparsec.Text.Lazy as A
 xyz :: (Monad m) => L.Text -> Text -> Text -> ConduitT () Position m ()
 xyz blob delimval delimline = go blob
   where
-    go input = do
-      let result = A.parse (P.xyzLine delimval delimline) input
-      case result of
-        A.Fail _ _ _ -> pure ()
+    go input = case A.parse (P.xyzLine delimval delimline) input of
+        A.Fail{}      -> pure ()
         A.Done rest x -> do
           yield x
           go rest
@@ -29,16 +27,12 @@ xyz blob delimval delimline = go blob
 --------------------------------------------------------------------------------
 
 stl :: (Monad m) => L.Text -> ConduitT () (Position, Position, Position) m ()
-stl blob = do
-  let result = A.parse P.skipSTLAsciiHeader blob
-  case result of
-    A.Fail _ _ _  -> pure ()
+stl blob = case A.parse P.skipSTLAsciiHeader blob of
+    A.Fail{}      -> pure ()
     A.Done rest _ -> go rest
   where
-    go input = do
-      let result = A.parse P.stlFace input
-      case result of
-        A.Fail _ _ _ -> pure ()
+    go input = case A.parse P.stlFace input of
+        A.Fail{}      -> pure ()
         A.Done rest x -> do
           yield x
           go rest
@@ -56,16 +50,12 @@ ply path = do
 --------------------------------------------------------------------------------
 ---TODO must skip comments
 plyVertices :: (Monad m) => L.Text -> ConduitT () Position m ()
-plyVertices blob = do
-  let result = A.parse P.plyHeader blob
-  case result of
-    A.Fail _ _ _ ->  pure ()
+plyVertices blob = case A.parse P.plyHeader blob of
+    A.Fail{}      ->  pure ()
     A.Done rest _ -> go rest
   where
-    go input = do
-      let result = A.parse P.plyVertex input
-      case result of
-        A.Fail _ _ _ -> pure ()
+    go input = case A.parse P.plyVertex input of
+        A.Fail{}      -> pure ()
         A.Done rest x -> do
           yield x
           go rest
@@ -84,10 +74,8 @@ obj path = do
 objVertices :: (Monad m) => L.Text -> ConduitT () Position m ()
 objVertices = go
   where
-    go input = do
-      let result = A.parse P.objVertex input
-      case result of
-        A.Fail _ _ _ -> pure ()
+    go input = case A.parse P.objVertex input of
+        A.Fail{}      -> pure ()
         A.Done rest x -> do
           yield x
           go rest
@@ -96,16 +84,12 @@ objVertices = go
 
 --- TODO wont work if faces and vertices not in expected order, required in format?
 objFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
-objFaces blob = do
-  let result = A.parse (many' P.objVertex) blob --- TODO obj not strictly ordered
-  case result of
-    A.Fail _ _ _  -> pure ()
+objFaces blob = case A.parse (many' P.objVertex) blob of
+    A.Fail{}      -> pure ()
     A.Done rest _ -> go rest
   where
-    go input = do
-      let result = A.parse P.objFace input
-      case result of
-        A.Fail _ _ _ -> pure ()
+    go input = case A.parse P.objFace input of
+        A.Fail{}      -> pure ()
         A.Done rest x -> do
           yield x
           go rest
@@ -115,20 +99,14 @@ objFaces blob = do
 -- skip header and vertices then parse faces
 -- TODO must skip comments
 plyFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
-plyFaces blob = do
-  let result = A.parse P.plyHeader blob
-  case result of
-    A.Fail _ _ _ ->  pure ()
-    A.Done rest _ -> do
-      let result = A.parse (many' P.plyVertex) rest
-      case result of
-        A.Fail _ _ _  -> pure ()
+plyFaces blob = case A.parse P.plyHeader blob of
+    A.Fail{}      ->  pure ()
+    A.Done rest _ -> case A.parse (many' P.plyVertex) rest of
+        A.Fail{}      -> pure ()
         A.Done rest _ -> go rest
   where
-    go input = do
-      let result = A.parse P.plyFace input
-      case result of
-        A.Fail _ _ _ -> pure ()
+    go input = case A.parse P.plyFace input of
+        A.Fail{}      -> pure ()
         A.Done rest x -> do
           yield x
           go rest
