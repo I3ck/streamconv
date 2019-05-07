@@ -16,26 +16,12 @@ import Data.Attoparsec.Text.Lazy as A
 --------------------------------------------------------------------------------
 
 xyz :: (Monad m) => L.Text -> Text -> Text -> ConduitT () Position m ()
-xyz blob delimval delimline = go blob
-  where
-    go input = case A.parse (P.xyzLine delimval delimline) input of
-        A.Fail{}      -> pure ()
-        A.Done rest x -> do
-          yield x
-          go rest
+xyz blob delimval delimline = makeSource (pure ()) (P.xyzLine delimval delimline) blob
 
 --------------------------------------------------------------------------------
 
 stl :: (Monad m) => L.Text -> ConduitT () (Position, Position, Position) m ()
-stl blob = case A.parse P.skipSTLAsciiHeader blob of
-    A.Fail{}      -> pure ()
-    A.Done rest _ -> go rest
-  where
-    go input = case A.parse P.stlFace input of
-        A.Fail{}      -> pure ()
-        A.Done rest x -> do
-          yield x
-          go rest
+stl = makeSource P.skipSTLAsciiHeader P.stlFace
 
 --------------------------------------------------------------------------------
 
@@ -50,15 +36,7 @@ ply path = do
 --------------------------------------------------------------------------------
 ---TODO must skip comments
 plyVertices :: (Monad m) => L.Text -> ConduitT () Position m ()
-plyVertices blob = case A.parse P.plyHeader blob of
-    A.Fail{}      ->  pure ()
-    A.Done rest _ -> go rest
-  where
-    go input = case A.parse P.plyVertex input of
-        A.Fail{}      -> pure ()
-        A.Done rest x -> do
-          yield x
-          go rest
+plyVertices = makeSource P.plyHeader P.plyVertex
 
 --------------------------------------------------------------------------------
 
@@ -72,41 +50,30 @@ obj path = do
 --------------------------------------------------------------------------------
 --- TODO wont work if faces and vertices not in expected order, required in format?
 objVertices :: (Monad m) => L.Text -> ConduitT () Position m ()
-objVertices = go
-  where
-    go input = case A.parse P.objVertex input of
-        A.Fail{}      -> pure ()
-        A.Done rest x -> do
-          yield x
-          go rest
+objVertices = makeSource (pure ()) P.objVertex
 
 --------------------------------------------------------------------------------
 
 --- TODO wont work if faces and vertices not in expected order, required in format?
 objFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
-objFaces blob = case A.parse (many' P.objVertex) blob of
-    A.Fail{}      -> pure ()
-    A.Done rest _ -> go rest
-  where
-    go input = case A.parse P.objFace input of
-        A.Fail{}      -> pure ()
-        A.Done rest x -> do
-          yield x
-          go rest
+objFaces = makeSource (many' P.objVertex >> pure ()) P.objFace
 
 --------------------------------------------------------------------------------
 
 -- skip header and vertices then parse faces
 -- TODO must skip comments
 plyFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
-plyFaces blob = case A.parse P.plyHeader blob of
-    A.Fail{}      ->  pure ()
-    A.Done rest _ -> case A.parse (many' P.plyVertex) rest of
-        A.Fail{}      -> pure ()
-        A.Done rest _ -> go rest
+plyFaces = makeSource (P.plyHeader >> many' P.plyVertex >> pure() ) P.plyFace
+
+--------------------------------------------------------------------------------
+--- TODO monad restriction not required?
+makeSource :: (Monad m) => A.Parser () -> A.Parser a -> L.Text -> ConduitT () a m ()
+makeSource skipper parser blob = case A.parse skipper blob of
+    A.Fail{}      -> pure ()
+    A.Done rest _ -> go rest
   where
-    go input = case A.parse P.plyFace input of
-        A.Fail{}      -> pure ()
-        A.Done rest x -> do
-          yield x
-          go rest
+    go input = case A.parse parser input of
+      A.Fail{}      -> pure ()
+      A.Done rest x -> do
+        yield x
+        go rest
