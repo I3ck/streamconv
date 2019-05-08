@@ -19,3 +19,10 @@ data Face = Face
   , b :: Int
   , c :: Int
   } deriving (Show)
+
+data Format
+  = StlAscii
+  | StlBinary
+  | Obj
+  | PlyAscii
+  | PlyBin

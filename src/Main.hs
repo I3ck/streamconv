@@ -3,19 +3,58 @@
 module Main where
 
 import Conduit
---import Types
+import Types
 import Instances ()
 import Sources
 import Transformers
 import Sinks
 import System.IO
+import qualified Data.Text.Lazy as L
 import qualified Data.Text.Lazy.IO as LIO
 
 --------------------------------------------------------------------------------
 
+bufferSize = 100
+
+--- TODO expand to support all possible combinations (for now, later consider better abstraction to not have quadratic complexity)
+run :: String -> String -> Format -> Format -> IO ()
+run pf pt = run'
+  where
+    run' :: Format -> Format -> IO ()
+    run' StlAscii Obj 
+      = withBlobHandle (\ b h -> runConduit $ stl b .| untriple .| objToStr bufferSize .| stringSink h)
+
+    run' StlAscii StlBinary
+      = withBlobHandle (\b h -> runConduit $ stl b .| stlBinarySink h)
+
+    run' StlAscii PlyAscii 
+      = withBlobHandle (\b h -> runConduit $ stl b .| plyTripletAsciiSink h)
+
+    run' StlAscii PlyBin 
+      = withBlobHandle (\b h -> runConduit $ stl b .| plyTripletBinarySink h)
+
+    run' Obj PlyAscii
+      = withFile pt WriteMode (\h -> do
+        (cv, cf) <- obj pf
+        plyAsciiSink' h cv cf)
+        
+{- TODO implement
+    run' Obj PlyBin
+      = withFile pt WriteMode (\h -> do
+        (cv, cf) <- obj pf
+        plyBinSink' h cv cf)
+-}
+
+    
+    run' _ _ = putStrLn "Conversion not supported" ---TODO more info
+
+    withBlobHandle :: (L.Text -> Handle -> IO ()) -> IO ()
+    withBlobHandle f = withFile pt WriteMode (\h -> do
+                       blob <- LIO.readFile pf
+                       f blob h)
+
 main :: IO ()
 main = do
-  let bufferSize = 100
 {-
   runConduit $ 
        (yieldMany $ fmap (\i -> Position i (2*i) (3*i)) [0..10000000-1]) 
