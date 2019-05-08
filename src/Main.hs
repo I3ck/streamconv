@@ -30,14 +30,19 @@ run pf pt = run'
     run' StlAscii PlyAscii 
       = withBlobHandle (\b h -> runConduit $ stl b .| plyTripletAsciiSink h)
 
-    run' StlAscii PlyBin 
+    run' StlAscii PlyBinary
       = withBlobHandle (\b h -> runConduit $ stl b .| plyTripletBinarySink h)
 
     run' Obj PlyAscii
       = withFile pt WriteMode (\h -> do
         (cv, cf) <- obj pf
         plyAsciiSink' h cv cf)
-        
+
+    run' Obj PlyBinary
+      = withFile pt WriteMode (\h -> do
+        (cv, cf) <- obj pf
+        plyBinarySink' h cv cf)
+
 {- TODO implement
     run' Obj PlyBin
       = withFile pt WriteMode (\h -> do
@@ -125,6 +130,11 @@ main = do
   withFile "tmp/objFile.ply" WriteMode (\h -> do
     (cv, cf) <- obj "tmp/obj.obj"
     plyAsciiSink' h cv cf
+    )
+
+  withFile "tmp/objFileToBin.ply" WriteMode (\h -> do
+    (cv, cf) <- obj "tmp/obj.obj"
+    plyBinarySink' h cv cf
     )
     
   pure ()

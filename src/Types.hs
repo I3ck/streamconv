@@ -25,4 +25,4 @@ data Format
   | StlBinary
   | Obj
   | PlyAscii
-  | PlyBin
+  | PlyBinary

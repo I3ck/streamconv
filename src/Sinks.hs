@@ -3,6 +3,7 @@ module Sinks
   , plyAsciiSink
   , plyAsciiSink'
   , plyBinarySink
+  , plyBinarySink'
   , plyTripletAsciiSink
   , plyTripletBinarySink
   , stlAsciiSink
@@ -199,8 +200,8 @@ plyAsciiSink' h cv cf = do
     , "property list uchar int vertex_index"
     , "end_header"
     ]
-  countVs <- runConduit $ cv .| plyOnlyVertex h
-  countFs <- runConduit $ cf .| plyOnlyFace h
+  countVs <- runConduit $ cv .| plyOnlyVertexAscii h
+  countFs <- runConduit $ cf .| plyOnlyFaceAscii h
   let placeholderVslength = length placeholderVs
       replacementVs       = "element vertex " ++ show countVs ++ "\ncomment "
       placeholderFslength = length placeholderFs
@@ -215,8 +216,8 @@ plyAsciiSink' h cv cf = do
     placeholderFs = "element face 0\ncomment ##################################"
 
 -- assumes handle at right pos
-plyOnlyVertex :: (X a, Y a, Z a) => Handle -> ConduitT a Void IO Int
-plyOnlyVertex h = go 0
+plyOnlyVertexAscii :: (X a, Y a, Z a) => Handle -> ConduitT a Void IO Int
+plyOnlyVertexAscii h = go 0
   where
     go count = do
       may <- await
@@ -228,8 +229,8 @@ plyOnlyVertex h = go 0
     toStr v = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) --TODO use "showS trick"
 
 -- assumes handle at right pos
-plyOnlyFace :: Handle -> ConduitT Face Void IO Int
-plyOnlyFace h = go 0
+plyOnlyFaceAscii :: Handle -> ConduitT Face Void IO Int
+plyOnlyFaceAscii h = go 0
   where
     go count = do
       may <- await
@@ -280,6 +281,74 @@ plyBinarySink h = do
             hPutStrLn h $ replacement ++ replicate (placeholderlength - length replacement) '#'
 
     placeholder = "element vertex 0\ncomment ##################################"
+
+---TODO rename
+---TODO implement
+---TODO move somewhere else since signature doesnt match?
+plyBinarySink' :: (X a, Y a, Z a) => Handle -> ConduitT () a IO () -> ConduitT () Face IO () -> IO ()
+plyBinarySink' h cv cf = do
+  -- TODO lots of duped code
+  liftIO $ hPutStr h $ unlines
+    [ "ply"
+    , "format binary_big_endian 1.0"
+    ]
+  placeholderVsPos <- liftIO $ hTell h
+  liftIO $ hPutStr h $ unlines
+    [ placeholderVs
+    , "property float x"
+    , "property float y"
+    , "property float z"
+    ]
+  placeholderFsPos <- liftIO $ hTell h
+  liftIO $ hPutStr h $ unlines
+    [ placeholderFs
+    , "property list uchar int vertex_index"
+    , "end_header"
+    ]
+  countVs <- runConduit $ cv .| plyOnlyVertexBinary h
+  countFs <- runConduit $ cf .| plyOnlyFaceBinary h
+  let placeholderVslength = length placeholderVs
+      replacementVs       = "element vertex " ++ show countVs ++ "\ncomment "
+      placeholderFslength = length placeholderFs
+      replacementFs       = "element face " ++ show countFs ++ "\ncomment "
+  hSeek h AbsoluteSeek placeholderVsPos
+  hPutStrLn h $ replacementVs ++ replicate (placeholderVslength - length replacementVs) '#'
+  hSeek h AbsoluteSeek placeholderFsPos
+  hPutStrLn h $ replacementFs ++ replicate (placeholderFslength - length replacementFs) '#'
+
+  where --TODO these must be helper methods elsewhere
+    placeholderVs = "element vertex 0\ncomment ##################################"
+    placeholderFs = "element face 0\ncomment ##################################"
+
+plyOnlyVertexBinary :: (X a, Y a, Z a) => Handle -> ConduitT a Void IO Int
+plyOnlyVertexBinary h = go 0
+  where
+    go count = do
+      may <- await
+      case may of
+        Just v  -> do 
+          liftIO $ do 
+            BSL.hPutStr h $ float2beBSL $ realToFrac $ getx $ v
+            BSL.hPutStr h $ float2beBSL $ realToFrac $ gety $ v
+            BSL.hPutStr h $ float2beBSL $ realToFrac $ getz $ v
+          go $ count+1
+        Nothing -> pure count
+
+-- assumes handle at right pos
+plyOnlyFaceBinary :: Handle -> ConduitT Face Void IO Int
+plyOnlyFaceBinary h = go 0
+  where
+    go count = do
+      may <- await
+      case may of
+        Just (Face a b c)  -> do 
+          liftIO $ do 
+            BSL.hPutStr h $ uchar2BSL 3
+            BSL.hPutStr h $ int2beBSL $ fromIntegral a
+            BSL.hPutStr h $ int2beBSL $ fromIntegral b
+            BSL.hPutStr h $ int2beBSL $ fromIntegral c
+          go $ count+1
+        Nothing -> pure count
     
 plyTripletBinarySink :: (X a, Y a, Z a) => Handle -> ConduitT (a, a, a) Void IO ()
 plyTripletBinarySink h = do
