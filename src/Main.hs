@@ -43,6 +43,15 @@ run pf pt = run'
         (cv, cf) <- obj pf
         plyBinarySink' h cv cf)
 
+    run' Xyz Obj
+      = withBlobHandle (\b h -> runConduit $ xyz b " " "\n" .| objToStr bufferSize .| stringSink h)
+
+    run' Xyz PlyAscii 
+      = withBlobHandle (\b h -> runConduit $ xyz b " " "\n" .| plyAsciiSink h)
+
+    run' Xyz PlyBinary
+      = withBlobHandle (\b h -> runConduit $ xyz b " " "\n" .| plyBinarySink h)
+
 {- TODO implement
     run' Obj PlyBin
       = withFile pt WriteMode (\h -> do

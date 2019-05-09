@@ -26,3 +26,4 @@ data Format
   | Obj
   | PlyAscii
   | PlyBinary
+  | Xyz
