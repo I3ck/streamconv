@@ -30,7 +30,7 @@ stlAscii = makeSource P.skipSTLAsciiHeader P.stlFace
 --------------------------------------------------------------------------------
 
 stlBinary :: (Monad m) => BL.ByteString -> ConduitT () (Position, Position, Position) m ()
-stlBinary blob = go $ (BL.drop $ 10 + 4) blob -- 80 bits for header, 32 bit for triangle cound
+stlBinary blob = go $ (BL.drop $ 80 + 4) blob -- 80 bytes for header, 32 bit for triangle count
   where
     go input = case G.runGetIncremental getVertex `G.pushChunks` BL.take 50 input of
         G.Fail{}    -> pure ()
