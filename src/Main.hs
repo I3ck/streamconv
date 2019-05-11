@@ -13,6 +13,7 @@ import System.IO
 import Options.Applicative
 import Data.List
 import System.Exit
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.Maybe as M
 import qualified Data.Text.Lazy as L
 import qualified Data.Text.Lazy.IO as LIO
@@ -92,6 +93,18 @@ run pf pt = run'
     run' StlAscii PlyBinary
       = withBlobHandle (\b h -> runConduit $ stlAscii b .| plyTripletBinarySink h)
 
+    run' StlBinary Obj
+      = withBlobHandle' (\ b h -> runConduit $ stlBinary b .| untriple .| objToStr bufferSize .| stringSink h)
+
+    run' StlBinary StlAscii
+      = withBlobHandle' (\b h -> runConduit $ stlBinary b .| stlAsciiSink h)
+
+    run' StlBinary PlyAscii 
+      = withBlobHandle' (\b h -> runConduit $ stlBinary b .| plyTripletAsciiSink h)
+
+    run' StlBinary PlyBinary
+      = withBlobHandle' (\b h -> runConduit $ stlBinary b .| plyTripletBinarySink h)
+
     run' Obj PlyAscii
       = withFile pt WriteMode (\h -> do
         (cv, cf) <- obj pf
@@ -125,6 +138,11 @@ run pf pt = run'
     withBlobHandle f = withFile pt WriteMode (\h -> do
                        blob <- LIO.readFile pf
                        f blob h)
+
+    withBlobHandle' :: (BL.ByteString -> Handle -> IO ()) -> IO ()
+    withBlobHandle' f = withFile pt WriteMode (\h -> do
+                        blob <- BL.readFile pf
+                        f blob h)
 
 main :: IO ()
 main = do
