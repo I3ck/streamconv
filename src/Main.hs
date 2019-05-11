@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Main where
 
@@ -9,6 +10,10 @@ import Sources
 import Transformers
 import Sinks
 import System.IO
+import Options.Applicative
+import Data.List
+import System.Exit
+import qualified Data.Maybe as M
 import qualified Data.Text.Lazy as L
 import qualified Data.Text.Lazy.IO as LIO
 
@@ -16,6 +21,60 @@ import qualified Data.Text.Lazy.IO as LIO
 
 bufferSize = 100
 
+--------------------------------------------------------------------------------
+
+maybeRead :: (Read a) => String -> Maybe a
+maybeRead s = valueIfNoRemainder =<< (M.listToMaybe . reads $ s)
+  where
+    valueIfNoRemainder (x, rem) | null rem  = Just x
+                                | otherwise = Nothing
+
+maybeToEither :: e -> Maybe a -> Either e a
+maybeToEither _   (Just x) = Right x
+maybeToEither err Nothing  = Left err
+                                
+
+createArgs :: ArgsRaw -> Either String Args ---TODO error types
+createArgs ArgsRaw{..} = do
+  fIn  <- maybeToEither "Unknown input format"  $ maybeRead rfIn
+  fOut <- maybeToEither "Unknown output format" $ maybeRead rfOut
+  pure Args{pIn = rpIn, pOut = rpOut, fIn = fIn, fOut = fOut}
+
+opts :: ParserInfo ArgsRaw
+opts = info (helper <*> args)
+  ( fullDesc
+  <> progDesc "streamconv 0.0.1 - Memory efficient conversion between pointcloud formats. Use --help for more information (c) Martin Buck"
+  <> header "streamconv 0.0.1 (c) Martin Buck"
+  )
+
+args :: Parser ArgsRaw
+args = ArgsRaw
+  <$> strOption
+    ( long "pin"
+    <> help "Path to the input file"
+    <> metavar "STRING"
+    )
+  <*> strOption
+    ( long "pout"
+    <> help "Path to write to"
+    <> metavar "STRING"
+    )
+  <*> strOption
+    ( long "fin"
+    <> help ("Input format" ++ sFormats)
+    <> metavar "STRING"
+    )
+  <*> strOption
+    ( long "fout"
+    <> help ("Output format" ++ sFormats)
+    <> metavar "STRING"
+    )
+  where
+    sFormats = " [" ++ intercalate ", " (show <$> formats) ++ " ]"
+
+--------------------------------------------------------------------------------
+
+--- TODO consider passing Args here
 --- TODO expand to support all possible combinations (for now, later consider better abstraction to not have quadratic complexity)
 run :: String -> String -> Format -> Format -> IO ()
 run pf pt = run'
@@ -60,7 +119,7 @@ run pf pt = run'
 -}
 
     
-    run' _ _ = putStrLn "Conversion not supported" ---TODO more info
+    run' f t = putStrLn $ "Conversion from " ++ show f ++ " to " ++ show t ++ " not supported (yet)" ---TODO more info
 
     withBlobHandle :: (L.Text -> Handle -> IO ()) -> IO ()
     withBlobHandle f = withFile pt WriteMode (\h -> do
@@ -69,6 +128,11 @@ run pf pt = run'
 
 main :: IO ()
 main = do
+  rargs <- execParser opts
+  case createArgs rargs of
+    Left e         -> die e
+    Right Args{..} -> run pIn pOut fIn fOut
+{-
 {-
   runConduit $ 
        (yieldMany $ fmap (\i -> Position i (2*i) (3*i)) [0..10000000-1]) 
@@ -147,3 +211,4 @@ main = do
     )
     
   pure ()
+-}

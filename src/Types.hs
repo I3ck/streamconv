@@ -27,3 +27,27 @@ data Format
   | PlyAscii
   | PlyBinary
   | Xyz
+  deriving (Show, Read)
+
+formats = 
+  [ StlAscii
+  , StlBinary
+  , Obj
+  , PlyAscii
+  , PlyBinary
+  , Xyz
+  ]
+
+data ArgsRaw = ArgsRaw
+  { rpIn  :: String
+  , rpOut :: String
+  , rfIn  :: String
+  , rfOut :: String
+  }
+
+data Args = Args
+  { pIn  :: String
+  , pOut :: String
+  , fIn  :: Format
+  , fOut :: Format
+  }

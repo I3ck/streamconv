@@ -24,3 +24,5 @@ obj face indices start at 1 !
 todo .xy source
 
 stl binary source
+
+resolve issues with conversion between stl like format of only positions and index list logic by writing temporary files
