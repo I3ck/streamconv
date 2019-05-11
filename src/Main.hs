@@ -80,17 +80,17 @@ run :: String -> String -> Format -> Format -> IO ()
 run pf pt = run'
   where
     run' :: Format -> Format -> IO ()
-    run' StlAscii Obj 
-      = withBlobHandle (\ b h -> runConduit $ stl b .| untriple .| objToStr bufferSize .| stringSink h)
+    run' StlAscii Obj
+      = withBlobHandle (\ b h -> runConduit $ stlAscii b .| untriple .| objToStr bufferSize .| stringSink h)
 
     run' StlAscii StlBinary
-      = withBlobHandle (\b h -> runConduit $ stl b .| stlBinarySink h)
+      = withBlobHandle (\b h -> runConduit $ stlAscii b .| stlBinarySink h)
 
     run' StlAscii PlyAscii 
-      = withBlobHandle (\b h -> runConduit $ stl b .| plyTripletAsciiSink h)
+      = withBlobHandle (\b h -> runConduit $ stlAscii b .| plyTripletAsciiSink h)
 
     run' StlAscii PlyBinary
-      = withBlobHandle (\b h -> runConduit $ stl b .| plyTripletBinarySink h)
+      = withBlobHandle (\b h -> runConduit $ stlAscii b .| plyTripletBinarySink h)
 
     run' Obj PlyAscii
       = withFile pt WriteMode (\h -> do
