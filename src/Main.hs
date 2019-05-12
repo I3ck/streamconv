@@ -115,6 +115,16 @@ run pf pt = run'
         (cv, cf) <- obj pf
         plyBinarySink' h cv cf)
 
+    run' Obj StlAscii
+      = withFile pt WriteMode (\h -> do
+        (cv, cf) <- obj pf
+        runConduit $ triplet cv cf .| stlAsciiSink h)
+
+    run' Obj StlBinary
+      = withFile pt WriteMode (\h -> do
+        (cv, cf) <- obj pf
+        runConduit $ triplet cv cf .| stlBinarySink h)
+
     run' Xyz Obj
       = withBlobHandle (\b h -> runConduit $ xyz b " " "\n" .| objToStr bufferSize .| stringSink h)
 

@@ -82,21 +82,20 @@ triplet cv cf = do
   --- TODO consider using seek + handle
   liftIO $ hClose h
   where
-    go h input = do
-      case G.runGetIncremental getFace `G.pushChunks` BL.take 12 input of
-        G.Fail{}                -> pure ()
-        G.Partial{}             -> pure ()
-        G.Done _ _ (Face a b c) -> do
-          mva <- liftIO $ fetchVertex h $ fromIntegral a
-          mvb <- liftIO $ fetchVertex h $ fromIntegral b
-          mvc <- liftIO $ fetchVertex h $ fromIntegral c
-          case (mva, mvb, mvc) of
-            (Just va, Just vb, Just vc) -> do
-              yield (va, vb, vc)
-              go h (BL.drop 12 input)
-            _ -> pure ()
+    go h input = case G.runGetIncremental getFace `G.pushChunks` BL.take 12 input of
+      G.Fail{}                -> pure ()
+      G.Partial{}             -> pure ()
+      G.Done _ _ (Face a b c) -> do
+        mva <- liftIO $ fetchVertex h $ fromIntegral a
+        mvb <- liftIO $ fetchVertex h $ fromIntegral b
+        mvc <- liftIO $ fetchVertex h $ fromIntegral c
+        case (mva, mvb, mvc) of
+          (Just va, Just vb, Just vc) -> do
+            yield (va, vb, vc)
+            go h (BL.drop 12 input)
+          _ -> pure ()
 
-          --- TODO seek to a b c in h and if all suceed, yield triplet
+        --- TODO seek to a b c in h and if all suceed, yield triplet
 
 
     getFace = do
