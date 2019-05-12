@@ -81,6 +81,23 @@ run :: String -> String -> Format -> Format -> IO ()
 run pf pt = run'
   where
     run' :: Format -> Format -> IO ()
+
+    --- TODO missing OBJ sink for this
+    {-
+    run' PlyAscii Obj
+      = withBlobHandle (\ b h -> runConduit $ ply b .| objToStr bufferSize .| stringSink h)
+    -}
+
+    run' PlyAscii StlAscii
+      = withFile pt WriteMode (\h -> do
+        (cv, cf) <- ply pf
+        runConduit $ triplet cv cf .| stlAsciiSink h)
+
+    run' PlyAscii StlBinary
+      = withFile pt WriteMode (\h -> do
+        (cv, cf) <- ply pf
+        runConduit $ triplet cv cf .| stlBinarySink h)
+
     run' StlAscii Obj
       = withBlobHandle (\ b h -> runConduit $ stlAscii b .| untriple .| objToStr bufferSize .| stringSink h)
 
