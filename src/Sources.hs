@@ -39,21 +39,21 @@ stlBinary blob = go $ (BL.drop $ 80 + 4) blob -- 80 bytes for header, 32 bit for
           yield x
           go $ BL.drop 50 input
     getVertex = do
-      G.getFloatle             -- 4 3 normals, ignored for now
-      G.getFloatle             -- 8
-      G.getFloatle             -- 12
-      ax <- c <$> G.getFloatle -- 16
-      ay <- c <$> G.getFloatle -- 20
-      az <- c <$> G.getFloatle -- 24
-      bx <- c <$> G.getFloatle -- 28
-      by <- c <$> G.getFloatle -- 32
-      bz <- c <$> G.getFloatle -- 36
-      cx <- c <$> G.getFloatle -- 40
-      cy <- c <$> G.getFloatle -- 44
-      cz <- c <$> G.getFloatle -- 48
+      G.getFloatle         -- 4 3 normals, ignored for now
+      G.getFloatle         -- 8
+      G.getFloatle         -- 12
+      ax <- c G.getFloatle -- 16
+      ay <- c G.getFloatle -- 20
+      az <- c G.getFloatle -- 24
+      bx <- c G.getFloatle -- 28
+      by <- c G.getFloatle -- 32
+      bz <- c G.getFloatle -- 36
+      cx <- c G.getFloatle -- 40
+      cy <- c G.getFloatle -- 44
+      cz <- c G.getFloatle -- 48
       G.getInt16le             -- 50
       pure (Position ax ay az, Position bx by bz, Position cx cy cz)
-    c = realToFrac
+    c = fmap realToFrac
 
 --------------------------------------------------------------------------------
 
