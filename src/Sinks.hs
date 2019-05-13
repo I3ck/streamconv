@@ -437,7 +437,7 @@ objOnlyFace h = go
           liftIO $ hPutStrLn h $ toStr v
           go
         Nothing -> pure ()
-    toStr (Face a b c) = "f " ++ show a ++ " " ++ show b ++ " " ++ show c
+    toStr (Face a b c) = "f " ++ show (a+1) ++ " " ++ show (b+1) ++ " " ++ show (c+1)
 
 objTripletSink :: (X a, Y a, Z a) => Handle -> ConduitT (a, a, a) Void IO ()
 objTripletSink h = go 0
@@ -455,7 +455,7 @@ objTripletSink h = go 0
 
     --- TODO have this helper rather in transformers? (Could already reuse a generalized version)
     toStr v       = "v " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) ++ " \n" --TODO use "showS trick"
-    printFace fid = hPutStrLn h $ "f " ++ (show $ 3*fid+0) ++ " " ++ (show $ 3*fid+1) ++ " " ++ (show $ 3*fid+2)
+    printFace fid = hPutStrLn h $ "f " ++ (show $ 3*fid+1) ++ " " ++ (show $ 3*fid+2) ++ " " ++ (show $ 3*fid+3)
 
 --- TODO is specialized for big endian, name accordingly and offer le version
 --- https://hackage.haskell.org/package/binary-0.8.6.0/docs/Data-Binary-Put.html
