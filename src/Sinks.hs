@@ -1,5 +1,7 @@
 module Sinks
-  ( stringSink 
+  ( stringSink
+  , objSink
+  , objTripletSink
   , plyAsciiSink
   , plyAsciiSink'
   , plyBinarySink
@@ -406,6 +408,54 @@ plyTripletBinarySink h = do
       BSL.hPutStr h $ float2beBSL $ realToFrac $ getz $ v
 
 --------------------------------------------------------------------------------
+
+objSink :: (X a, Y a, Z a) => Handle -> ConduitT () a IO () -> ConduitT () Face IO () -> IO ()
+objSink h cv cf = do
+  runConduit $ cv .| objOnlyVertex h
+  runConduit $ cf .| objOnlyFace h
+
+objOnlyVertex :: (X a, Y a, Z a) => Handle -> ConduitT a Void IO ()
+objOnlyVertex h = go
+  where
+    go = do
+      may <- await
+      case may of
+        Just v  -> do 
+          liftIO $ hPutStrLn h $ toStr v
+          go
+        Nothing -> pure ()
+    toStr v = "v " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) --TODO use "showS trick"
+
+-- assumes handle at right pos
+objOnlyFace :: Handle -> ConduitT Face Void IO ()
+objOnlyFace h = go
+  where
+    go = do
+      may <- await
+      case may of
+        Just v  -> do 
+          liftIO $ hPutStrLn h $ toStr v
+          go
+        Nothing -> pure ()
+    toStr (Face a b c) = "f " ++ show a ++ " " ++ show b ++ " " ++ show c
+
+objTripletSink :: (X a, Y a, Z a) => Handle -> ConduitT (a, a, a) Void IO ()
+objTripletSink h = go 0
+  where
+    go countFs = do
+      may <- await
+      case may of
+        Just (a, b, c) -> do
+          liftIO $ do 
+            hPutStr h (toStr a)
+            hPutStr h (toStr b)
+            hPutStr h (toStr c)
+          go (countFs+1)
+        Nothing -> liftIO $ mapM_ printFace [0..countFs-1] --- TODO error if no faces!?
+
+    --- TODO have this helper rather in transformers? (Could already reuse a generalized version)
+    toStr v       = "v " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) ++ " \n" --TODO use "showS trick"
+    printFace fid = hPutStrLn h $ "f " ++ (show $ 3*fid+0) ++ " " ++ (show $ 3*fid+1) ++ " " ++ (show $ 3*fid+2)
 
 --- TODO is specialized for big endian, name accordingly and offer le version
 --- https://hackage.haskell.org/package/binary-0.8.6.0/docs/Data-Binary-Put.html
