@@ -83,82 +83,66 @@ run env = run'
     run' :: Format -> Format -> IO ()
 
     run' PlyAscii StlAscii
-      = do
-        let (cv, cf) = ply env
-        runConduit $ triplet cv cf .| stlAsciiSink env
+      = pf2Tri env ply stlAsciiSink
 
     run' PlyAscii StlBinary
-      = do
-        let (cv, cf) = ply env
-        runConduit $ triplet cv cf .| stlBinarySink env
+      = pf2Tri env ply stlBinarySink
 
     run' PlyAscii Obj
-      = do
-        let (cv, cf) = ply env
-        objSink env cv cf
+      = pf2Pf env ply objSink
 
     run' StlAscii Obj
-      = runConduit $ stlAscii env .| objTripletSink env
+      = direct env stlAscii objTripletSink
 
     run' StlAscii StlBinary
-      = runConduit $ stlAscii env .| stlBinarySink env
+      = direct env stlAscii stlBinarySink
 
     run' StlAscii PlyAscii 
-      = runConduit $ stlAscii env .| plyTripletAsciiSink env
+      = direct env stlAscii plyTripletAsciiSink
 
     run' StlAscii PlyBinary
-      = runConduit $ stlAscii env .| plyTripletBinarySink env
+      = direct env stlAscii plyTripletBinarySink
 
     run' StlBinary Obj
-      = runConduit $ stlBinary env .| objTripletSink env
+      = direct env stlBinary objTripletSink
 
     run' StlBinary StlAscii
-      = runConduit $ stlBinary env .| stlAsciiSink env
+      = direct env stlBinary stlAsciiSink
 
     run' StlBinary PlyAscii 
-      = runConduit $ stlBinary env .| plyTripletAsciiSink env
+      = direct env stlBinary plyTripletAsciiSink
 
     run' StlBinary PlyBinary
-      = runConduit $ stlBinary env .| plyTripletBinarySink env
+      = direct env stlBinary plyTripletBinarySink
 
     run' Obj PlyAscii
-      = do
-        let (cv, cf) = obj env
-        plyAsciiSink' env cv cf
+      = pf2Pf env obj plyAsciiSink'
 
     run' Obj PlyBinary
-      = do
-        let (cv, cf) = obj env
-        plyBinarySink' env cv cf
+      = pf2Pf env obj plyBinarySink'
 
     run' Obj StlAscii
-      = do
-        let (cv, cf) = obj env
-        runConduit $ triplet cv cf .| stlAsciiSink env
+      = pf2Tri env obj stlAsciiSink
 
     run' Obj StlBinary
-      = do
-        let (cv, cf) = obj env
-        runConduit $ triplet cv cf .| stlBinarySink env
+      = pf2Tri env obj stlBinarySink
 
-    run' Xyz Obj
-      = runConduit $ xyz env .| objToStr bufferSize .| stringSink env
+    run' Xyz Obj 
+      = pos2Str env xyz stringSink
 
     run' Xyz PlyAscii 
-      = runConduit $ xyz env .| plyAsciiSink env
+      = pos2Pos env xyz plyAsciiSink
 
     run' Xyz PlyBinary
-      = runConduit $ xyz env .| plyBinarySink env
+      = pos2Pos env xyz plyBinarySink
 
-{- TODO implement
-    run' Obj PlyBin
-      = withFile pt WriteMode (\h -> do
-        (cv, cf) <- obj pf
-        plyBinSink' h cv cf)
--}
-
-    
     run' f t = putStrLn $ "Conversion from " ++ show f ++ " to " ++ show t ++ " not supported (yet)" ---TODO more info
+
+    pos2Str env fsource fsink = runConduit $ fsource env .| objToStr bufferSize .| fsink env
+    pos2Pos env fsource fsink = runConduit $ fsource env .| fsink env
+    pf2Tri  env fsource fsink = (\(cv, cf) -> runConduit $ triplet cv cf .| fsink env) $ fsource env
+    pf2Pf   env fsource fsink = (\(cv, cf) -> fsink env cv cf) $ fsource env
+    direct  env fsource fsink = runConduit $ fsource env .| fsink env
 
 --- TODO rename
 readEnvironment :: Handle -> String -> T.Text -> T.Text -> IO Environment
