@@ -77,78 +77,78 @@ args = ArgsRaw
 
 --- TODO consider passing Args here
 --- TODO expand to support all possible combinations (for now, later consider better abstraction to not have quadratic complexity)
-run :: Environment -> String -> Format -> Format -> IO ()
-run sd pt = run'
+run :: Environment -> Format -> Format -> IO ()
+run env = run'
   where
     run' :: Format -> Format -> IO ()
 
     run' PlyAscii StlAscii
-      = withFile pt WriteMode (\h -> do
-        let (cv, cf) = ply sd
-        runConduit $ triplet cv cf .| stlAsciiSink h)
+      = do
+        let (cv, cf) = ply env
+        runConduit $ triplet cv cf .| stlAsciiSink env
 
     run' PlyAscii StlBinary
-      = withFile pt WriteMode (\h -> do
-        let (cv, cf) = ply sd
-        runConduit $ triplet cv cf .| stlBinarySink h)
+      = do
+        let (cv, cf) = ply env
+        runConduit $ triplet cv cf .| stlBinarySink env
 
     run' PlyAscii Obj
-      = withFile pt WriteMode (\h -> do
-        let (cv, cf) = ply sd
-        objSink h cv cf)
+      = do
+        let (cv, cf) = ply env
+        objSink env cv cf
 
     run' StlAscii Obj
-      = withHandle (\h -> runConduit $ stlAscii sd .| objTripletSink h)
+      = runConduit $ stlAscii env .| objTripletSink env
 
     run' StlAscii StlBinary
-      = withHandle (\h -> runConduit $ stlAscii sd .| stlBinarySink h)
+      = runConduit $ stlAscii env .| stlBinarySink env
 
     run' StlAscii PlyAscii 
-      = withHandle (\h -> runConduit $ stlAscii sd .| plyTripletAsciiSink h)
+      = runConduit $ stlAscii env .| plyTripletAsciiSink env
 
     run' StlAscii PlyBinary
-      = withHandle (\h -> runConduit $ stlAscii sd .| plyTripletBinarySink h)
+      = runConduit $ stlAscii env .| plyTripletBinarySink env
 
     run' StlBinary Obj
-      = withHandle (\h -> runConduit $ stlBinary sd .| objTripletSink h)
+      = runConduit $ stlBinary env .| objTripletSink env
 
     run' StlBinary StlAscii
-      = withHandle (\h -> runConduit $ stlBinary sd .| stlAsciiSink h)
+      = runConduit $ stlBinary env .| stlAsciiSink env
 
     run' StlBinary PlyAscii 
-      = withHandle (\h -> runConduit $ stlBinary sd .| plyTripletAsciiSink h)
+      = runConduit $ stlBinary env .| plyTripletAsciiSink env
 
     run' StlBinary PlyBinary
-      = withHandle (\h -> runConduit $ stlBinary sd .| plyTripletBinarySink h)
+      = runConduit $ stlBinary env .| plyTripletBinarySink env
 
     run' Obj PlyAscii
-      = withFile pt WriteMode (\h -> do
-        let (cv, cf) = obj sd
-        plyAsciiSink' h cv cf)
+      = do
+        let (cv, cf) = obj env
+        plyAsciiSink' env cv cf
 
     run' Obj PlyBinary
-      = withFile pt WriteMode (\h -> do
-        let (cv, cf) = obj sd
-        plyBinarySink' h cv cf)
+      = do
+        let (cv, cf) = obj env
+        plyBinarySink' env cv cf
 
     run' Obj StlAscii
-      = withFile pt WriteMode (\h -> do
-        let (cv, cf) = obj sd
-        runConduit $ triplet cv cf .| stlAsciiSink h)
+      = do
+        let (cv, cf) = obj env
+        runConduit $ triplet cv cf .| stlAsciiSink env
 
     run' Obj StlBinary
-      = withFile pt WriteMode (\h -> do
-        let (cv, cf) = obj sd
-        runConduit $ triplet cv cf .| stlBinarySink h)
+      = do
+        let (cv, cf) = obj env
+        runConduit $ triplet cv cf .| stlBinarySink env
 
     run' Xyz Obj
-      = withHandle (\h -> runConduit $ xyz sd .| objToStr bufferSize .| stringSink h)
+      = runConduit $ xyz env .| objToStr bufferSize .| stringSink env
 
     run' Xyz PlyAscii 
-      = withHandle (\h -> runConduit $ xyz sd .| plyAsciiSink h)
+      = runConduit $ xyz env .| plyAsciiSink env
 
     run' Xyz PlyBinary
-      = withHandle (\h -> runConduit $ xyz sd .| plyBinarySink h)
+      = runConduit $ xyz env .| plyBinarySink env
 
 {- TODO implement
     run' Obj PlyBin
@@ -160,25 +160,23 @@ run sd pt = run'
     
     run' f t = putStrLn $ "Conversion from " ++ show f ++ " to " ++ show t ++ " not supported (yet)" ---TODO more info
 
-    withHandle :: (Handle -> IO ()) -> IO ()
-    withHandle f = withFile pt WriteMode (\h -> f h)
-
-readEnvironment :: String -> T.Text -> T.Text -> IO Environment
-readEnvironment p delimVal delimLine = do
+--- TODO rename
+readEnvironment :: Handle -> String -> T.Text -> T.Text -> IO Environment
+readEnvironment h p delimVal delimLine = do
   ba1 <- LIO.readFile p
   ba2 <- LIO.readFile p
   bb1 <- BL.readFile p
   bb2 <- BL.readFile p
-  pure Environment{ eBlobA1 = ba1, eBlobA2 = ba2, eBlobB1 = bb1, eBlobB2 = bb2, eXyzVal = delimVal, eXyzLine = delimLine }
+  pure Environment{ eBlobA1 = ba1, eBlobA2 = ba2, eBlobB1 = bb1, eBlobB2 = bb2, eXyzVal = delimVal, eXyzLine = delimLine, eHandle = h }
 
 main :: IO ()
 main = do
   rargs <- execParser opts
   case createArgs rargs of
     Left e         -> die e
-    Right Args{..} -> do 
-      sd <- readEnvironment pIn ";" "\n"
-      run sd pOut fIn fOut
+    Right Args{..} -> withFile pOut WriteMode (\h -> do
+        env <- readEnvironment h pIn ";" "\n"
+        run env fIn fOut)
 {-
 {-
   runConduit $ 

@@ -1,6 +1,7 @@
 module Types where
 
 import Data.Text
+import System.IO
 import qualified Data.Text.Lazy as L
 import qualified Data.ByteString.Lazy as BL
 
@@ -25,12 +26,13 @@ data Face = Face
   } deriving (Show)
 
 data Environment = Environment
-  { eBlobA1  :: L.Text        -- File read as lazy text
-  , eBlobA2  :: L.Text        -- File read as lazy text
-  , eBlobB1  :: BL.ByteString -- File read as lazy bytestring
-  , eBlobB2  :: BL.ByteString -- File read as lazy bytestring
+  { eBlobA1  :: L.Text        -- file read as lazy text
+  , eBlobA2  :: L.Text        -- file read as lazy text
+  , eBlobB1  :: BL.ByteString -- file read as lazy bytestring
+  , eBlobB2  :: BL.ByteString -- file read as lazy bytestring
   , eXyzVal  :: Text          -- value delimiter for xyz files
   , eXyzLine :: Text          -- line delimiter for xyz files
+  , eHandle  :: Handle        -- handle to write to
   }
 
 data Format
