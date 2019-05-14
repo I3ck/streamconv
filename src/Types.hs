@@ -25,9 +25,10 @@ data Face = Face
   } deriving (Show)
 
 data SourceData = SourceData
-  { sPath    :: String        -- FilePath to input
-  , sBlobA   :: L.Text        -- File read as lazy text
-  , sBlobB   :: BL.ByteString -- File read as lazy bytestring
+  { sBlobA1  :: L.Text        -- File read as lazy text
+  , sBlobA2  :: L.Text        -- File read as lazy text
+  , sBlobB1  :: BL.ByteString -- File read as lazy bytestring
+  , sBlobB2  :: BL.ByteString -- File read as lazy bytestring
   , sXyzVal  :: Text          -- value delimiter for xyz files
   , sXyzLine :: Text          -- line delimiter for xyz files
   }

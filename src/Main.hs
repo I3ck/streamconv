@@ -84,17 +84,17 @@ run sd pt = run'
 
     run' PlyAscii StlAscii
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- ply sd
+        let (cv, cf) = ply sd
         runConduit $ triplet cv cf .| stlAsciiSink h)
 
     run' PlyAscii StlBinary
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- ply sd
+        let (cv, cf) = ply sd
         runConduit $ triplet cv cf .| stlBinarySink h)
 
     run' PlyAscii Obj
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- ply sd
+        let (cv, cf) = ply sd
         objSink h cv cf)
 
     run' StlAscii Obj
@@ -123,22 +123,22 @@ run sd pt = run'
 
     run' Obj PlyAscii
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- obj sd
+        let (cv, cf) = obj sd
         plyAsciiSink' h cv cf)
 
     run' Obj PlyBinary
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- obj sd
+        let (cv, cf) = obj sd
         plyBinarySink' h cv cf)
 
     run' Obj StlAscii
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- obj sd
+        let (cv, cf) = obj sd
         runConduit $ triplet cv cf .| stlAsciiSink h)
 
     run' Obj StlBinary
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- obj sd
+        let (cv, cf) = obj sd
         runConduit $ triplet cv cf .| stlBinarySink h)
 
     run' Xyz Obj
@@ -165,9 +165,11 @@ run sd pt = run'
 
 readSourceData :: String -> T.Text -> T.Text -> IO SourceData
 readSourceData p delimVal delimLine = do
-  ba <- LIO.readFile p
-  bb <- BL.readFile p
-  pure SourceData{ sPath = p, sBlobA = ba, sBlobB = bb, sXyzVal = delimVal, sXyzLine = delimLine }
+  ba1 <- LIO.readFile p
+  ba2 <- LIO.readFile p
+  bb1 <- BL.readFile p
+  bb2 <- BL.readFile p
+  pure SourceData{ sBlobA1 = ba1, sBlobA2 = ba2, sBlobB1 = bb1, sBlobB2 = bb2, sXyzVal = delimVal, sXyzLine = delimLine }
 
 main :: IO ()
 main = do

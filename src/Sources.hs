@@ -15,7 +15,6 @@ import Classes
 import System.IO
 import Data.Int
 import qualified Data.Text.Lazy as L
-import qualified Data.Text.Lazy.IO as LIO
 import qualified Parsers as P
 import Data.Attoparsec.Text.Lazy as A
 import qualified Data.Binary.Get as G
@@ -25,17 +24,17 @@ import qualified Data.Binary.Put as P
 --------------------------------------------------------------------------------
 
 xyz :: (Monad m) => SourceData -> ConduitT () Position m ()
-xyz SourceData{..} = makeSource (pure ()) (P.xyzLine sXyzVal sXyzLine) sBlobA
+xyz SourceData{..} = makeSource (pure ()) (P.xyzLine sXyzVal sXyzLine) sBlobA1
 
 --------------------------------------------------------------------------------
 
 stlAscii :: (Monad m) => SourceData -> ConduitT () (Position, Position, Position) m ()
-stlAscii SourceData{..} = makeSource P.skipSTLAsciiHeader P.stlFace sBlobA
+stlAscii SourceData{..} = makeSource P.skipSTLAsciiHeader P.stlFace sBlobA1
 
 --------------------------------------------------------------------------------
 
 stlBinary :: (Monad m) => SourceData -> ConduitT () (Position, Position, Position) m ()
-stlBinary SourceData{..} = go $ (BL.drop $ 80 + 4) sBlobB -- 80 bytes for header, 32 bit for triangle count
+stlBinary SourceData{..} = go $ (BL.drop $ 80 + 4) sBlobB1 -- 80 bytes for header, 32 bit for triangle count
   where
     go input = case G.runGetIncremental getVertex `G.pushChunks` BL.take 50 input of
         G.Fail{}    -> pure ()
@@ -170,12 +169,8 @@ int2beBSL = P.runPut . P.putInt32be
 
 --------------------------------------------------------------------------------
 
-ply :: (Monad m) => SourceData -> IO (ConduitT () Position m (), ConduitT () Face m ())
-ply SourceData{..} = do
-  -- important to read file twice to ensure no space leak
-  bloba <- liftIO $ LIO.readFile sPath
-  blobb <- liftIO $ LIO.readFile sPath
-  pure (plyVertices bloba, plyFaces blobb)
+ply :: (Monad m) => SourceData -> (ConduitT () Position m (), ConduitT () Face m ())
+ply SourceData{..} = (plyVertices sBlobA1, plyFaces sBlobA2)
 
 
 --------------------------------------------------------------------------------
@@ -185,12 +180,8 @@ plyVertices = makeSource P.plyHeader P.plyVertex
 
 --------------------------------------------------------------------------------
 
-obj:: (Monad m) => SourceData -> IO (ConduitT () Position m (), ConduitT () Face m ())
-obj SourceData{..} = do
-  -- important to read file twice to ensure no space leak
-  bloba <- liftIO $ LIO.readFile sPath
-  blobb <- liftIO $ LIO.readFile sPath
-  pure (objVertices bloba, objFaces blobb)
+obj:: (Monad m) => SourceData -> (ConduitT () Position m (), ConduitT () Face m ())
+obj SourceData{..} = (objVertices sBlobA1, objFaces sBlobA2)
 
 --------------------------------------------------------------------------------
 --- TODO wont work if faces and vertices not in expected order, required in format?
