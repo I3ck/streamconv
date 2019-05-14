@@ -23,18 +23,18 @@ import qualified Data.Binary.Put as P
 
 --------------------------------------------------------------------------------
 
-xyz :: (Monad m) => SourceData -> ConduitT () Position m ()
-xyz SourceData{..} = makeSource (pure ()) (P.xyzLine sXyzVal sXyzLine) sBlobA1
+xyz :: (Monad m) => Environment -> ConduitT () Position m ()
+xyz Environment{..} = makeSource (pure ()) (P.xyzLine eXyzVal eXyzLine) eBlobA1
 
 --------------------------------------------------------------------------------
 
-stlAscii :: (Monad m) => SourceData -> ConduitT () (Position, Position, Position) m ()
-stlAscii SourceData{..} = makeSource P.skipSTLAsciiHeader P.stlFace sBlobA1
+stlAscii :: (Monad m) => Environment -> ConduitT () (Position, Position, Position) m ()
+stlAscii Environment{..} = makeSource P.skipSTLAsciiHeader P.stlFace eBlobA1
 
 --------------------------------------------------------------------------------
 
-stlBinary :: (Monad m) => SourceData -> ConduitT () (Position, Position, Position) m ()
-stlBinary SourceData{..} = go $ (BL.drop $ 80 + 4) sBlobB1 -- 80 bytes for header, 32 bit for triangle count
+stlBinary :: (Monad m) => Environment -> ConduitT () (Position, Position, Position) m ()
+stlBinary Environment{..} = go $ (BL.drop $ 80 + 4) eBlobB1 -- 80 bytes for header, 32 bit for triangle count
   where
     go input = case G.runGetIncremental getVertex `G.pushChunks` BL.take 50 input of
         G.Fail{}    -> pure ()
@@ -169,8 +169,8 @@ int2beBSL = P.runPut . P.putInt32be
 
 --------------------------------------------------------------------------------
 
-ply :: (Monad m) => SourceData -> (ConduitT () Position m (), ConduitT () Face m ())
-ply SourceData{..} = (plyVertices sBlobA1, plyFaces sBlobA2)
+ply :: (Monad m) => Environment -> (ConduitT () Position m (), ConduitT () Face m ())
+ply Environment{..} = (plyVertices eBlobA1, plyFaces eBlobA2)
 
 
 --------------------------------------------------------------------------------
@@ -180,8 +180,8 @@ plyVertices = makeSource P.plyHeader P.plyVertex
 
 --------------------------------------------------------------------------------
 
-obj:: (Monad m) => SourceData -> (ConduitT () Position m (), ConduitT () Face m ())
-obj SourceData{..} = (objVertices sBlobA1, objFaces sBlobA2)
+obj:: (Monad m) => Environment -> (ConduitT () Position m (), ConduitT () Face m ())
+obj Environment{..} = (objVertices eBlobA1, objFaces eBlobA2)
 
 --------------------------------------------------------------------------------
 --- TODO wont work if faces and vertices not in expected order, required in format?

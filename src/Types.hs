@@ -24,13 +24,13 @@ data Face = Face
   , c :: Int
   } deriving (Show)
 
-data SourceData = SourceData
-  { sBlobA1  :: L.Text        -- File read as lazy text
-  , sBlobA2  :: L.Text        -- File read as lazy text
-  , sBlobB1  :: BL.ByteString -- File read as lazy bytestring
-  , sBlobB2  :: BL.ByteString -- File read as lazy bytestring
-  , sXyzVal  :: Text          -- value delimiter for xyz files
-  , sXyzLine :: Text          -- line delimiter for xyz files
+data Environment = Environment
+  { eBlobA1  :: L.Text        -- File read as lazy text
+  , eBlobA2  :: L.Text        -- File read as lazy text
+  , eBlobB1  :: BL.ByteString -- File read as lazy bytestring
+  , eBlobB2  :: BL.ByteString -- File read as lazy bytestring
+  , eXyzVal  :: Text          -- value delimiter for xyz files
+  , eXyzLine :: Text          -- line delimiter for xyz files
   }
 
 data Format

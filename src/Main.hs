@@ -77,7 +77,7 @@ args = ArgsRaw
 
 --- TODO consider passing Args here
 --- TODO expand to support all possible combinations (for now, later consider better abstraction to not have quadratic complexity)
-run :: SourceData -> String -> Format -> Format -> IO ()
+run :: Environment -> String -> Format -> Format -> IO ()
 run sd pt = run'
   where
     run' :: Format -> Format -> IO ()
@@ -163,13 +163,13 @@ run sd pt = run'
     withHandle :: (Handle -> IO ()) -> IO ()
     withHandle f = withFile pt WriteMode (\h -> f h)
 
-readSourceData :: String -> T.Text -> T.Text -> IO SourceData
-readSourceData p delimVal delimLine = do
+readEnvironment :: String -> T.Text -> T.Text -> IO Environment
+readEnvironment p delimVal delimLine = do
   ba1 <- LIO.readFile p
   ba2 <- LIO.readFile p
   bb1 <- BL.readFile p
   bb2 <- BL.readFile p
-  pure SourceData{ sBlobA1 = ba1, sBlobA2 = ba2, sBlobB1 = bb1, sBlobB2 = bb2, sXyzVal = delimVal, sXyzLine = delimLine }
+  pure Environment{ eBlobA1 = ba1, eBlobA2 = ba2, eBlobB1 = bb1, eBlobB2 = bb2, eXyzVal = delimVal, eXyzLine = delimLine }
 
 main :: IO ()
 main = do
@@ -177,7 +177,7 @@ main = do
   case createArgs rargs of
     Left e         -> die e
     Right Args{..} -> do 
-      sd <- readSourceData pIn ";" "\n"
+      sd <- readEnvironment pIn ";" "\n"
       run sd pOut fIn fOut
 {-
 {-
