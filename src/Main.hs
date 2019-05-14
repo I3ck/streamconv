@@ -13,9 +13,9 @@ import System.IO
 import Options.Applicative
 import Data.List
 import System.Exit
+import qualified Data.Text as T
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Maybe as M
-import qualified Data.Text.Lazy as L
 import qualified Data.Text.Lazy.IO as LIO
 
 --------------------------------------------------------------------------------
@@ -77,78 +77,78 @@ args = ArgsRaw
 
 --- TODO consider passing Args here
 --- TODO expand to support all possible combinations (for now, later consider better abstraction to not have quadratic complexity)
-run :: String -> String -> Format -> Format -> IO ()
-run pf pt = run'
+run :: SourceData -> String -> Format -> Format -> IO ()
+run sd pt = run'
   where
     run' :: Format -> Format -> IO ()
 
     run' PlyAscii StlAscii
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- ply pf
+        (cv, cf) <- ply sd
         runConduit $ triplet cv cf .| stlAsciiSink h)
 
     run' PlyAscii StlBinary
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- ply pf
+        (cv, cf) <- ply sd
         runConduit $ triplet cv cf .| stlBinarySink h)
 
     run' PlyAscii Obj
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- ply pf
+        (cv, cf) <- ply sd
         objSink h cv cf)
 
     run' StlAscii Obj
-      = withBlobHandle (\ b h -> runConduit $ stlAscii b .| objTripletSink h)
+      = withHandle (\h -> runConduit $ stlAscii sd .| objTripletSink h)
 
     run' StlAscii StlBinary
-      = withBlobHandle (\b h -> runConduit $ stlAscii b .| stlBinarySink h)
+      = withHandle (\h -> runConduit $ stlAscii sd .| stlBinarySink h)
 
     run' StlAscii PlyAscii 
-      = withBlobHandle (\b h -> runConduit $ stlAscii b .| plyTripletAsciiSink h)
+      = withHandle (\h -> runConduit $ stlAscii sd .| plyTripletAsciiSink h)
 
     run' StlAscii PlyBinary
-      = withBlobHandle (\b h -> runConduit $ stlAscii b .| plyTripletBinarySink h)
+      = withHandle (\h -> runConduit $ stlAscii sd .| plyTripletBinarySink h)
 
     run' StlBinary Obj
-      = withBlobHandle' (\ b h -> runConduit $ stlBinary b .| objTripletSink h)
+      = withHandle (\h -> runConduit $ stlBinary sd .| objTripletSink h)
 
     run' StlBinary StlAscii
-      = withBlobHandle' (\b h -> runConduit $ stlBinary b .| stlAsciiSink h)
+      = withHandle (\h -> runConduit $ stlBinary sd .| stlAsciiSink h)
 
     run' StlBinary PlyAscii 
-      = withBlobHandle' (\b h -> runConduit $ stlBinary b .| plyTripletAsciiSink h)
+      = withHandle (\h -> runConduit $ stlBinary sd .| plyTripletAsciiSink h)
 
     run' StlBinary PlyBinary
-      = withBlobHandle' (\b h -> runConduit $ stlBinary b .| plyTripletBinarySink h)
+      = withHandle (\h -> runConduit $ stlBinary sd .| plyTripletBinarySink h)
 
     run' Obj PlyAscii
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- obj pf
+        (cv, cf) <- obj sd
         plyAsciiSink' h cv cf)
 
     run' Obj PlyBinary
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- obj pf
+        (cv, cf) <- obj sd
         plyBinarySink' h cv cf)
 
     run' Obj StlAscii
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- obj pf
+        (cv, cf) <- obj sd
         runConduit $ triplet cv cf .| stlAsciiSink h)
 
     run' Obj StlBinary
       = withFile pt WriteMode (\h -> do
-        (cv, cf) <- obj pf
+        (cv, cf) <- obj sd
         runConduit $ triplet cv cf .| stlBinarySink h)
 
     run' Xyz Obj
-      = withBlobHandle (\b h -> runConduit $ xyz b " " "\n" .| objToStr bufferSize .| stringSink h)
+      = withHandle (\h -> runConduit $ xyz sd .| objToStr bufferSize .| stringSink h)
 
     run' Xyz PlyAscii 
-      = withBlobHandle (\b h -> runConduit $ xyz b " " "\n" .| plyAsciiSink h)
+      = withHandle (\h -> runConduit $ xyz sd .| plyAsciiSink h)
 
     run' Xyz PlyBinary
-      = withBlobHandle (\b h -> runConduit $ xyz b " " "\n" .| plyBinarySink h)
+      = withHandle (\h -> runConduit $ xyz sd .| plyBinarySink h)
 
 {- TODO implement
     run' Obj PlyBin
@@ -160,22 +160,23 @@ run pf pt = run'
     
     run' f t = putStrLn $ "Conversion from " ++ show f ++ " to " ++ show t ++ " not supported (yet)" ---TODO more info
 
-    withBlobHandle :: (L.Text -> Handle -> IO ()) -> IO ()
-    withBlobHandle f = withFile pt WriteMode (\h -> do
-                       blob <- LIO.readFile pf
-                       f blob h)
+    withHandle :: (Handle -> IO ()) -> IO ()
+    withHandle f = withFile pt WriteMode (\h -> f h)
 
-    withBlobHandle' :: (BL.ByteString -> Handle -> IO ()) -> IO ()
-    withBlobHandle' f = withFile pt WriteMode (\h -> do
-                        blob <- BL.readFile pf
-                        f blob h)
+readSourceData :: String -> T.Text -> T.Text -> IO SourceData
+readSourceData p delimVal delimLine = do
+  ba <- LIO.readFile p
+  bb <- BL.readFile p
+  pure SourceData{ sPath = p, sBlobA = ba, sBlobB = bb, sXyzVal = delimVal, sXyzLine = delimLine }
 
 main :: IO ()
 main = do
   rargs <- execParser opts
   case createArgs rargs of
     Left e         -> die e
-    Right Args{..} -> run pIn pOut fIn fOut
+    Right Args{..} -> do 
+      sd <- readSourceData pIn ";" "\n"
+      run sd pOut fIn fOut
 {-
 {-
   runConduit $ 

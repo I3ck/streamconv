@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Sources
   ( xyz 
   , stlAscii
@@ -10,7 +12,6 @@ module Sources
 import Types
 import Conduit
 import Classes
-import Data.Text
 import System.IO
 import Data.Int
 import qualified Data.Text.Lazy as L
@@ -21,21 +22,20 @@ import qualified Data.Binary.Get as G
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Binary.Put as P
 
+--------------------------------------------------------------------------------
+
+xyz :: (Monad m) => SourceData -> ConduitT () Position m ()
+xyz SourceData{..} = makeSource (pure ()) (P.xyzLine sXyzVal sXyzLine) sBlobA
 
 --------------------------------------------------------------------------------
 
-xyz :: (Monad m) => L.Text -> Text -> Text -> ConduitT () Position m ()
-xyz blob delimval delimline = makeSource (pure ()) (P.xyzLine delimval delimline) blob
+stlAscii :: (Monad m) => SourceData -> ConduitT () (Position, Position, Position) m ()
+stlAscii SourceData{..} = makeSource P.skipSTLAsciiHeader P.stlFace sBlobA
 
 --------------------------------------------------------------------------------
 
-stlAscii :: (Monad m) => L.Text -> ConduitT () (Position, Position, Position) m ()
-stlAscii = makeSource P.skipSTLAsciiHeader P.stlFace
-
---------------------------------------------------------------------------------
-
-stlBinary :: (Monad m) => BL.ByteString -> ConduitT () (Position, Position, Position) m ()
-stlBinary blob = go $ (BL.drop $ 80 + 4) blob -- 80 bytes for header, 32 bit for triangle count
+stlBinary :: (Monad m) => SourceData -> ConduitT () (Position, Position, Position) m ()
+stlBinary SourceData{..} = go $ (BL.drop $ 80 + 4) sBlobB -- 80 bytes for header, 32 bit for triangle count
   where
     go input = case G.runGetIncremental getVertex `G.pushChunks` BL.take 50 input of
         G.Fail{}    -> pure ()
@@ -170,11 +170,11 @@ int2beBSL = P.runPut . P.putInt32be
 
 --------------------------------------------------------------------------------
 
-ply :: (Monad m) => String -> IO (ConduitT () Position m (), ConduitT () Face m ())
-ply path = do
+ply :: (Monad m) => SourceData -> IO (ConduitT () Position m (), ConduitT () Face m ())
+ply SourceData{..} = do
   -- important to read file twice to ensure no space leak
-  bloba <- liftIO $ LIO.readFile path
-  blobb <- liftIO $ LIO.readFile path
+  bloba <- liftIO $ LIO.readFile sPath
+  blobb <- liftIO $ LIO.readFile sPath
   pure (plyVertices bloba, plyFaces blobb)
 
 
@@ -185,11 +185,11 @@ plyVertices = makeSource P.plyHeader P.plyVertex
 
 --------------------------------------------------------------------------------
 
-obj:: (Monad m) => String -> IO (ConduitT () Position m (), ConduitT () Face m ())
-obj path = do
+obj:: (Monad m) => SourceData -> IO (ConduitT () Position m (), ConduitT () Face m ())
+obj SourceData{..} = do
   -- important to read file twice to ensure no space leak
-  bloba <- liftIO $ LIO.readFile path
-  blobb <- liftIO $ LIO.readFile path
+  bloba <- liftIO $ LIO.readFile sPath
+  blobb <- liftIO $ LIO.readFile sPath
   pure (objVertices bloba, objFaces blobb)
 
 --------------------------------------------------------------------------------

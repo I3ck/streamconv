@@ -1,5 +1,9 @@
 module Types where
 
+import Data.Text
+import qualified Data.Text.Lazy as L
+import qualified Data.ByteString.Lazy as BL
+
 --------------------------------------------------------------------------------
 
 data Position = Position
@@ -19,6 +23,14 @@ data Face = Face
   , b :: Int
   , c :: Int
   } deriving (Show)
+
+data SourceData = SourceData
+  { sPath    :: String        -- FilePath to input
+  , sBlobA   :: L.Text        -- File read as lazy text
+  , sBlobB   :: BL.ByteString -- File read as lazy bytestring
+  , sXyzVal  :: Text          -- value delimiter for xyz files
+  , sXyzLine :: Text          -- line delimiter for xyz files
+  }
 
 data Format
   = StlAscii
