@@ -12,6 +12,11 @@ module Sinks
   , plyTripletBinarySink
   , stlAsciiSink
   , stlBinarySink
+
+  , stringSinks
+  , xyzSinks
+  , tripletSinks
+  , faceSinks
   ) where
 
 import Types
@@ -20,8 +25,39 @@ import Data.Void
 import Conduit
 import System.IO
 import Data.Int
+import qualified Data.Map as M
 import qualified Data.Binary.Put as P
 import qualified Data.ByteString.Lazy as BSL
+
+--------------------------------------------------------------------------------
+
+--- TODO this is broken, have specific sinks instead of string transformers
+stringSinks :: M.Map Format (Environment -> ConduitT String Void IO ())
+stringSinks = M.fromList
+  [ ]
+
+xyzSinks :: (X a, Y a, Z a) => M.Map Format (Environment -> ConduitT a Void IO ())
+xyzSinks = M.fromList
+  [ (PlyAscii,  plyAsciiSink)
+  , (PlyBinary, plyBinarySink)
+  ]
+
+tripletSinks :: (X a, Y a, Z a) => M.Map Format (Environment -> ConduitT (a, a, a) Void IO ())
+tripletSinks = M.fromList
+  [ (StlAscii,  stlAsciiSink)
+  , (StlBinary, stlBinarySink)
+  , (PlyAscii,  plyTripletAsciiSink)
+  , (PlyBinary, plyTripletBinarySink)
+  , (Obj,       objTripletSink)
+  ]
+
+faceSinks :: (X a, Y a, Z a) => M.Map Format (Environment -> ConduitT () a IO () -> ConduitT () Face IO () -> IO ())
+faceSinks = M.fromList
+  [ (PlyAscii,  plyAsciiSink')
+  , (PlyBinary, plyBinarySink')
+  , (Obj,       objSink)
+
+  ]
 
 --------------------------------------------------------------------------------
 

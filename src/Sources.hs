@@ -7,6 +7,10 @@ module Sources
   , ply
   , obj
   , triplet
+
+  , posSources
+  , pfSources
+  , tripletSources
   ) where
 
 import Types
@@ -14,12 +18,30 @@ import Conduit
 import Classes
 import System.IO
 import Data.Int
+import qualified Data.Map as M
 import qualified Data.Text.Lazy as L
 import qualified Parsers as P
 import Data.Attoparsec.Text.Lazy as A
 import qualified Data.Binary.Get as G
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Binary.Put as P
+
+posSources :: M.Map Format (Environment -> ConduitT () Position IO ())
+posSources = M.fromList 
+  [ (Xyz, xyz)
+  ]
+
+tripletSources :: M.Map Format (Environment -> ConduitT () (Position, Position, Position) IO ())
+tripletSources = M.fromList
+  [ (StlAscii,  stlAscii)
+  , (StlBinary, stlBinary)
+  ]
+
+pfSources :: M.Map Format (Environment -> (ConduitT () Position IO (), ConduitT () Face IO ()))
+pfSources = M.fromList
+  [ (Obj,      obj)
+  , (PlyAscii, ply)
+  ]
 
 --------------------------------------------------------------------------------
 

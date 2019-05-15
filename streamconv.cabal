@@ -33,6 +33,7 @@ executable streamconv
                      , attoparsec
                      , binary
                      , optparse-applicative
+                     , containers
   hs-source-dirs:      src
   default-language:    Haskell2010
   ghc-options:         -O2 -W -fwarn-incomplete-patterns -Werror

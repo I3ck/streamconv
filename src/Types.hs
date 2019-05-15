@@ -42,7 +42,7 @@ data Format
   | PlyAscii
   | PlyBinary
   | Xyz
-  deriving (Show, Read)
+  deriving (Show, Read, Eq, Ord)
 
 formats = 
   [ StlAscii
