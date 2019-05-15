@@ -7,7 +7,7 @@ import Conduit
 import Types
 import Instances ()
 import Sources
-import Transformers
+--import Transformers
 import Sinks
 import System.IO
 import Options.Applicative
@@ -82,8 +82,8 @@ args = ArgsRaw
 run :: Environment -> Format -> Format -> IO ()
 run env = run'
   where
-    run2 :: Format -> Format -> IO ()
-    run2 from to = do
+    run' :: Format -> Format -> IO ()
+    run' from to = do
       let pfSource      = M.lookup from pfSources
           tripletSource = M.lookup from tripletSources
           posSource     = M.lookup from posSources
@@ -101,74 +101,10 @@ run env = run'
             ]
 
       case conversion of
-        Nothing -> putStrLn "No known conversion" --TODO better message
+        Nothing -> putStrLn $ "Conversion from " ++ show from ++ " to " ++ show to ++ " not supported (yet)" ---TODO more info
         Just x  -> x
-          
-          
-      --case M.lookup from pfSources of
 
-       -- Nothing -> 
-
-
-    run' :: Format -> Format -> IO ()
-
-    run' PlyAscii StlAscii
-      = pf2Tri env ply stlAsciiSink
-
-    run' PlyAscii StlBinary
-      = pf2Tri env ply stlBinarySink
-
-    run' PlyAscii Obj
-      = pf2Pf env ply objSink
-
-    run' StlAscii Obj
-      = direct env stlAscii objTripletSink
-
-    run' StlAscii StlBinary
-      = direct env stlAscii stlBinarySink
-
-    run' StlAscii PlyAscii 
-      = direct env stlAscii plyTripletAsciiSink
-
-    run' StlAscii PlyBinary
-      = direct env stlAscii plyTripletBinarySink
-
-    run' StlBinary Obj
-      = direct env stlBinary objTripletSink
-
-    run' StlBinary StlAscii
-      = direct env stlBinary stlAsciiSink
-
-    run' StlBinary PlyAscii 
-      = direct env stlBinary plyTripletAsciiSink
-
-    run' StlBinary PlyBinary
-      = direct env stlBinary plyTripletBinarySink
-
-    run' Obj PlyAscii
-      = pf2Pf env obj plyAsciiSink'
-
-    run' Obj PlyBinary
-      = pf2Pf env obj plyBinarySink'
-
-    run' Obj StlAscii
-      = pf2Tri env obj stlAsciiSink
-
-    run' Obj StlBinary
-      = pf2Tri env obj stlBinarySink
-
-    run' Xyz Obj 
-      = pos2Str env xyz stringSink
-
-    run' Xyz PlyAscii 
-      = pos2Pos env xyz plyAsciiSink
-
-    run' Xyz PlyBinary
-      = pos2Pos env xyz plyBinarySink
-
-    run' f t = putStrLn $ "Conversion from " ++ show f ++ " to " ++ show t ++ " not supported (yet)" ---TODO more info
-
-    pos2Str env fsource fsink = runConduit $ fsource env .| objToStr bufferSize .| fsink env
+    --pos2Str env fsource fsink = runConduit $ fsource env .| objToStr bufferSize .| fsink env
     pos2Pos env fsource fsink = runConduit $ fsource env .| fsink env
     pf2Tri  env fsource fsink = (\(cv, cf) -> runConduit $ triplet cv cf .| fsink env) $ fsource env
     pf2Pf   env fsource fsink = (\(cv, cf) -> fsink env cv cf) $ fsource env
