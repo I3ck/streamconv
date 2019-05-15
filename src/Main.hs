@@ -13,9 +13,11 @@ import System.IO
 import Options.Applicative
 import Data.List
 import System.Exit
+import qualified Data.Foldable as F
 import qualified Data.Text as T
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Maybe as M
+import qualified Data.Map as M
 import qualified Data.Text.Lazy.IO as LIO
 
 --------------------------------------------------------------------------------
@@ -80,6 +82,34 @@ args = ArgsRaw
 run :: Environment -> Format -> Format -> IO ()
 run env = run'
   where
+    run2 :: Format -> Format -> IO ()
+    run2 from to = do
+      let pfSource      = M.lookup from pfSources
+          tripletSource = M.lookup from tripletSources
+          posSource     = M.lookup from posSources
+          xyzSink       = M.lookup to   xyzSinks
+          tripletSink   = M.lookup to   (tripletSinks :: M.Map Format (Environment -> ConduitT (Position, Position, Position) Void IO ()))
+          faceSink      = M.lookup to   (faceSinks    :: M.Map Format (Environment -> ConduitT () Position IO () -> ConduitT () Face IO () -> IO ()))
+          
+          --- TODO likely there's more conversions
+          conversion = F.asum -- keep ordered for best experience
+            [ pf2Pf   env <$> pfSource      <*> faceSink
+            , pf2Tri  env <$> pfSource      <*> tripletSink
+            , direct  env <$> tripletSource <*> tripletSink
+            , pos2Pos env <$> posSource     <*> xyzSink
+            -- TODO pos2string missing due to transformer issue
+            ]
+
+      case conversion of
+        Nothing -> putStrLn "No known conversion" --TODO better message
+        Just x  -> x
+          
+          
+      --case M.lookup from pfSources of
+
+       -- Nothing -> 
+
+
     run' :: Format -> Format -> IO ()
 
     run' PlyAscii StlAscii
