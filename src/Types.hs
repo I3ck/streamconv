@@ -39,6 +39,7 @@ data Format -- MAKE SURE TO UPDATE formats BELOW!!!
   = StlAscii
   | StlBinary
   | Obj
+  | Off
   | PlyAscii
   | PlyBinary
   | Xy
@@ -49,6 +50,7 @@ formats =
   [ StlAscii
   , StlBinary
   , Obj
+  , Off
   , PlyAscii
   , PlyBinary
   , Xy

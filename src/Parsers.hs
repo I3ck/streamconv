@@ -7,7 +7,11 @@ module Parsers
   , plyVertex
   , plyFace
   , plyComment
-  , plyHeader
+  , plyHeader --TODO inconsistent names, some prefixed with "skip" others not
+  , offVertex
+  , offFace
+  , offComment
+  , skipOffHeader
   , objComment
   , objVertex
   , objFace
@@ -29,6 +33,31 @@ xyzLine delimval delimline = do
   string delimline
 
   pure $ Position x y z
+
+--------------------------------------------------------------------------------
+
+skipOffHeader :: Parser ()
+skipOffHeader = do
+  string "OFF"
+  skipAllRestOfLine
+  skipAllRestOfLine
+
+--------------------------------------------------------------------------------
+
+offVertex :: Parser Position
+offVertex = plyVertex
+
+--------------------------------------------------------------------------------
+
+offFace :: Parser Face
+offFace = plyFace
+
+--------------------------------------------------------------------------------
+
+offComment :: Parser ()
+offComment = do
+  string "#"
+  skipAllRestOfLine
 
 --------------------------------------------------------------------------------
 

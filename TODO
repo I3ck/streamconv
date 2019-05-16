@@ -36,3 +36,7 @@ need withBinaryFile and readBinaryFile ?
 solver logic which finds conduits required for conversion
 
 dont enforce delimiter on reading xyz etc?
+
+calculate normals for stl
+
+support other off formats ( http://www.geomview.org/docs/html/OFF.html )

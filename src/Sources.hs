@@ -6,6 +6,7 @@ module Sources
   , stlBinary
   , ply
   , obj
+  , off
   , triplet
 
   , posSources
@@ -41,6 +42,7 @@ pfSources :: M.Map Format (Environment -> (ConduitT () Position IO (), ConduitT 
 pfSources = M.fromList
   [ (Obj,      obj)
   , (PlyAscii, ply)
+  , (Off,      off)
   ]
 
 --------------------------------------------------------------------------------
@@ -202,6 +204,30 @@ plyVertices = makeSource P.plyHeader P.plyVertex
 
 --------------------------------------------------------------------------------
 
+-- skip header and vertices then parse faces
+-- TODO must skip comments
+plyFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
+plyFaces = makeSource (P.plyHeader >> many' P.plyVertex >> pure() ) P.plyFace
+
+--------------------------------------------------------------------------------
+
+off :: (Monad m) => Environment -> (ConduitT () Position m (), ConduitT () Face m ())
+off Environment{..} = (offVertices eBlobA1, offFaces eBlobA2)
+
+--------------------------------------------------------------------------------
+---TODO must skip comments
+offVertices :: (Monad m) => L.Text -> ConduitT () Position m ()
+offVertices = makeSource P.skipOffHeader P.offVertex
+
+--------------------------------------------------------------------------------
+
+-- skip header and vertices then parse faces
+-- TODO must skip comments
+offFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
+offFaces = makeSource (P.skipOffHeader >> many' P.offVertex >> pure() ) P.offFace
+
+--------------------------------------------------------------------------------
+
 obj:: (Monad m) => Environment -> (ConduitT () Position m (), ConduitT () Face m ())
 obj Environment{..} = (objVertices eBlobA1, objFaces eBlobA2)
 
@@ -215,13 +241,6 @@ objVertices = makeSource (pure ()) P.objVertex
 --- TODO wont work if faces and vertices not in expected order, required in format?
 objFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
 objFaces = makeSource (many' P.objVertex >> pure ()) P.objFace
-
---------------------------------------------------------------------------------
-
--- skip header and vertices then parse faces
--- TODO must skip comments
-plyFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
-plyFaces = makeSource (P.plyHeader >> many' P.plyVertex >> pure() ) P.plyFace
 
 --------------------------------------------------------------------------------
 --- TODO monad restriction not required?
