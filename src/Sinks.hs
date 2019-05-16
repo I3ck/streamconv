@@ -1,20 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Sinks
-  ( stringSink
-  , objSink
-  , objTripletSink
-  , plyAsciiSink
-  , plyAsciiSink'
-  , plyBinarySink
-  , plyBinarySink'
-  , plyTripletAsciiSink
-  , plyTripletBinarySink
-  , stlAsciiSink
-  , stlBinarySink
-
-  , stringSinks
-  , xyzSinks
+  ( xyzSinks
   , tripletSinks
   , faceSinks
   ) where
@@ -25,21 +12,19 @@ import Data.Void
 import Conduit
 import System.IO
 import Data.Int
+import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.Binary.Put as P
 import qualified Data.ByteString.Lazy as BSL
 
 --------------------------------------------------------------------------------
 
---- TODO this is broken, have specific sinks instead of string transformers
-stringSinks :: M.Map Format (Environment -> ConduitT String Void IO ())
-stringSinks = M.fromList
-  [ ]
-
 xyzSinks :: (X a, Y a, Z a) => M.Map Format (Environment -> ConduitT a Void IO ())
 xyzSinks = M.fromList
   [ (PlyAscii,  plyAsciiSink)
   , (PlyBinary, plyBinarySink)
+  , (Obj,       objOnlyVertex)
+  , (Xyz,       xyzSink)
   ]
 
 tripletSinks :: (X a, Y a, Z a) => M.Map Format (Environment -> ConduitT (a, a, a) Void IO ())
@@ -58,20 +43,6 @@ faceSinks = M.fromList
   , (Obj,       objSink)
 
   ]
-
---------------------------------------------------------------------------------
-
-stringSink :: Environment -> ConduitT String Void IO ()
-stringSink Environment{..} = do
-  go
-  where
-    go = do
-      may <- await
-      case may of
-        Nothing -> pure ()
-        Just x -> do
-          liftIO $ hPutStr eHandle x
-          go
 
 --------------------------------------------------------------------------------
 
@@ -494,6 +465,25 @@ objTripletSink Environment{..} = go 0
     --- TODO have this helper rather in transformers? (Could already reuse a generalized version)
     toStr v       = "v " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) ++ " \n" --TODO use "showS trick"
     printFace fid = hPutStrLn eHandle $ "f " ++ (show $ 3*fid+1) ++ " " ++ (show $ 3*fid+2) ++ " " ++ (show $ 3*fid+3)
+
+xyzSink :: (X a, Y a, Z a) => Environment -> ConduitT a Void IO ()
+xyzSink Environment{..} = go
+  where
+    go = do
+      may <- await
+      case may of
+        Just v  -> do 
+          liftIO $ hPutStrLn eHandle $ toStr v
+          go
+        Nothing -> pure ()
+    toStr v = 
+        (((show . getx $ v) ++)
+      . (T.unpack eXyzVal ++)
+      . ((show . gety $ v) ++)
+      . (T.unpack eXyzVal ++)
+      . ((show . getz $ v) ++)
+      . (T.unpack eXyzLine ++))
+      ""
 
 --- TODO is specialized for big endian, name accordingly and offer le version
 --- https://hackage.haskell.org/package/binary-0.8.6.0/docs/Data-Binary-Put.html
