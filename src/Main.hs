@@ -13,6 +13,7 @@ import System.IO
 import Options.Applicative
 import Data.List
 import System.Exit
+import Control.Monad
 import qualified Data.Foldable as F
 import qualified Data.Text as T
 import qualified Data.ByteString.Lazy as BL
@@ -41,7 +42,7 @@ createArgs :: ArgsRaw -> Either String Args ---TODO error types
 createArgs ArgsRaw{..} = do
   fIn  <- maybeToEither "Unknown input format"  $ maybeRead rfIn
   fOut <- maybeToEither "Unknown output format" $ maybeRead rfOut
-  pure Args{pIn = rpIn, pOut = rpOut, fIn = fIn, fOut = fOut}
+  pure Args{pIn = rpIn, pOut = rpOut, fIn = fIn, fOut = fOut, list = rList}
 
 opts :: ParserInfo ArgsRaw
 opts = info (helper <*> args)
@@ -71,6 +72,10 @@ args = ArgsRaw
     ( long "fout"
     <> help ("Output format" ++ sFormats)
     <> metavar "STRING"
+    )
+  <*> switch
+    ( long "list"
+    <> help "List available combinations"
     )
   where
     sFormats = " [" ++ intercalate ", " (show <$> formats) ++ " ]"
@@ -109,6 +114,14 @@ resolve env from to = result
     pf2Pf   env fsource fsink = (\(cv, cf) -> fsink env cv cf) $ fsource env
     direct  env fsource fsink = runConduit $ fsource env .| fsink env
 
+combinations :: Environment -> [(Format, Format)] -- TODO could be implemented to not require Environment
+combinations env = filter (\(f, t) -> M.isJust $ resolve env f t) all
+  where
+    all = (,) <$> formats <*> formats
+    
+showCombinations :: [(Format, Format)] -> String
+showCombinations = intercalate "\n" . fmap (\(f, t) -> show f ++ " -> " ++ show t)
+
 --- TODO rename
 readEnvironment :: Handle -> String -> T.Text -> T.Text -> IO Environment
 readEnvironment h p delimVal delimLine = do
@@ -125,7 +138,9 @@ main = do
     Left e         -> die e
     Right Args{..} -> withFile pOut WriteMode (\h -> do
         env <- readEnvironment h pIn ";" "\n"
+        when list $ putStrLn $ showCombinations $ combinations env
         run env fIn fOut)
+
 {-
 {-
   runConduit $ 

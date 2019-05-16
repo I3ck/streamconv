@@ -35,7 +35,7 @@ data Environment = Environment
   , eHandle  :: Handle        -- handle to write to
   }
 
-data Format
+data Format -- MAKE SURE TO UPDATE formats BELOW!!!
   = StlAscii
   | StlBinary
   | Obj
@@ -51,6 +51,7 @@ formats =
   , Obj
   , PlyAscii
   , PlyBinary
+  , Xy
   , Xyz
   ]
 
@@ -59,6 +60,7 @@ data ArgsRaw = ArgsRaw
   , rpOut :: String
   , rfIn  :: String
   , rfOut :: String
+  , rList :: Bool
   }
 
 data Args = Args
@@ -66,4 +68,5 @@ data Args = Args
   , pOut :: String
   , fIn  :: Format
   , fOut :: Format
+  , list :: Bool
   }
