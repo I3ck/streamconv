@@ -41,6 +41,7 @@ data Format
   | Obj
   | PlyAscii
   | PlyBinary
+  | Xy
   | Xyz
   deriving (Show, Read, Eq, Ord)
 

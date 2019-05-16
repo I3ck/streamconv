@@ -2,6 +2,7 @@
 
 module Sinks
   ( xyzSinks
+  , xySinks
   , tripletSinks
   , faceSinks
   ) where
@@ -18,6 +19,11 @@ import qualified Data.Binary.Put as P
 import qualified Data.ByteString.Lazy as BSL
 
 --------------------------------------------------------------------------------
+
+xySinks :: (X a, Y a) => M.Map Format (Environment -> ConduitT a Void IO ())
+xySinks = M.fromList
+  [ (Xy, xySink)
+  ]
 
 xyzSinks :: (X a, Y a, Z a) => M.Map Format (Environment -> ConduitT a Void IO ())
 xyzSinks = M.fromList
@@ -482,6 +488,23 @@ xyzSink Environment{..} = go
       . ((show . gety $ v) ++)
       . (T.unpack eXyzVal ++)
       . ((show . getz $ v) ++)
+      . (T.unpack eXyzLine ++))
+      ""
+
+xySink :: (X a, Y a) => Environment -> ConduitT a Void IO ()
+xySink Environment{..} = go
+  where
+    go = do
+      may <- await
+      case may of
+        Just v  -> do 
+          liftIO $ hPutStrLn eHandle $ toStr v
+          go
+        Nothing -> pure ()
+    toStr v = 
+        (((show . getx $ v) ++)
+      . (T.unpack eXyzVal ++)
+      . ((show . gety $ v) ++)
       . (T.unpack eXyzLine ++))
       ""
 
