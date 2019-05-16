@@ -7,7 +7,7 @@ import Conduit
 import Types
 import Instances ()
 import Sources
---import Transformers
+import Transformers
 import Sinks
 import System.IO
 import Options.Applicative
@@ -101,24 +101,27 @@ resolve env from to = result
     faceSink      = M.lookup to   (faceSinks    :: M.Map Format (Environment -> ConduitT () Position IO () -> ConduitT () Face IO () -> IO ()))
     --- TODO likely there's more conversions
     result = F.asum -- keep ordered for best experience
-      [ pf2Pf   env <$> pfSource      <*> faceSink
-      , pf2Tri  env <$> pfSource      <*> tripletSink
-      , direct  env <$> tripletSource <*> tripletSink
-      , pos2Pos env <$> posSource     <*> xyzSink
-      , pos2Pos env <$> posSource     <*> xySink
+      [ pf2Pf    env <$> pfSource      <*> faceSink
+      , pf2Tri   env <$> pfSource      <*> tripletSink
+      , direct   env <$> tripletSource <*> tripletSink
+      , trip2Pos env <$> tripletSource <*> xyzSink
+      , trip2Pos env <$> tripletSource <*> xySink
+      , pos2Pos  env <$> posSource     <*> xyzSink
+      , pos2Pos  env <$> posSource     <*> xySink
       -- TODO pos2string missing due to transformer issue
       ]
 
-    pos2Pos env fsource fsink = runConduit $ fsource env .| fsink env
-    pf2Tri  env fsource fsink = (\(cv, cf) -> runConduit $ triplet cv cf .| fsink env) $ fsource env
-    pf2Pf   env fsource fsink = (\(cv, cf) -> fsink env cv cf) $ fsource env
-    direct  env fsource fsink = runConduit $ fsource env .| fsink env
+    pos2Pos  env fsource fsink = runConduit $ fsource env .| fsink env
+    trip2Pos env fsource fsink = runConduit $ fsource env .| untriple .| fsink env
+    pf2Tri   env fsource fsink = (\(cv, cf) -> runConduit $ triplet cv cf .| fsink env) $ fsource env
+    pf2Pf    env fsource fsink = (\(cv, cf) -> fsink env cv cf) $ fsource env
+    direct   env fsource fsink = runConduit $ fsource env .| fsink env
 
 combinations :: Environment -> [(Format, Format)] -- TODO could be implemented to not require Environment
 combinations env = filter (\(f, t) -> M.isJust $ resolve env f t) all
   where
     all = (,) <$> formats <*> formats
-    
+
 showCombinations :: [(Format, Format)] -> String
 showCombinations = intercalate "\n" . fmap (\(f, t) -> show f ++ " -> " ++ show t)
 

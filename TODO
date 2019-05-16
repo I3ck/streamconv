@@ -40,3 +40,5 @@ dont enforce delimiter on reading xyz etc?
 calculate normals for stl
 
 support other off formats ( http://www.geomview.org/docs/html/OFF.html )
+
+disallow transform to same type?
