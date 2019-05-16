@@ -80,33 +80,30 @@ args = ArgsRaw
 --- TODO consider passing Args here
 --- TODO expand to support all possible combinations (for now, later consider better abstraction to not have quadratic complexity)
 run :: Environment -> Format -> Format -> IO ()
-run env = run'
-  where
-    run' :: Format -> Format -> IO ()
-    run' from to = do
-      let pfSource      = M.lookup from pfSources
-          tripletSource = M.lookup from tripletSources
-          posSource     = M.lookup from posSources
-          xyzSink       = M.lookup to   xyzSinks
-          xySink        = M.lookup to   xySinks
-          tripletSink   = M.lookup to   (tripletSinks :: M.Map Format (Environment -> ConduitT (Position, Position, Position) Void IO ()))
-          faceSink      = M.lookup to   (faceSinks    :: M.Map Format (Environment -> ConduitT () Position IO () -> ConduitT () Face IO () -> IO ()))
-          
-          --- TODO likely there's more conversions
-          conversion = F.asum -- keep ordered for best experience
-            [ pf2Pf   env <$> pfSource      <*> faceSink
-            , pf2Tri  env <$> pfSource      <*> tripletSink
-            , direct  env <$> tripletSource <*> tripletSink
-            , pos2Pos env <$> posSource     <*> xyzSink
-            , pos2Pos env <$> posSource     <*> xySink
-            -- TODO pos2string missing due to transformer issue
-            ]
+run env from to = case resolve env from to of
+  Nothing -> putStrLn $ "Conversion from " ++ show from ++ " to " ++ show to ++ " not supported (yet)" ---TODO more info
+  Just x  -> x
 
-      case conversion of
-        Nothing -> putStrLn $ "Conversion from " ++ show from ++ " to " ++ show to ++ " not supported (yet)" ---TODO more info
-        Just x  -> x
+resolve :: Environment -> Format -> Format -> Maybe (IO ())
+resolve env from to = result
+  where 
+    pfSource      = M.lookup from pfSources
+    tripletSource = M.lookup from tripletSources
+    posSource     = M.lookup from posSources
+    xyzSink       = M.lookup to   xyzSinks
+    xySink        = M.lookup to   xySinks
+    tripletSink   = M.lookup to   (tripletSinks :: M.Map Format (Environment -> ConduitT (Position, Position, Position) Void IO ()))
+    faceSink      = M.lookup to   (faceSinks    :: M.Map Format (Environment -> ConduitT () Position IO () -> ConduitT () Face IO () -> IO ()))
+    --- TODO likely there's more conversions
+    result = F.asum -- keep ordered for best experience
+      [ pf2Pf   env <$> pfSource      <*> faceSink
+      , pf2Tri  env <$> pfSource      <*> tripletSink
+      , direct  env <$> tripletSource <*> tripletSink
+      , pos2Pos env <$> posSource     <*> xyzSink
+      , pos2Pos env <$> posSource     <*> xySink
+      -- TODO pos2string missing due to transformer issue
+      ]
 
-    --pos2Str env fsource fsink = runConduit $ fsource env .| objToStr bufferSize .| fsink env
     pos2Pos env fsource fsink = runConduit $ fsource env .| fsink env
     pf2Tri  env fsource fsink = (\(cv, cf) -> runConduit $ triplet cv cf .| fsink env) $ fsource env
     pf2Pf   env fsource fsink = (\(cv, cf) -> fsink env cv cf) $ fsource env
