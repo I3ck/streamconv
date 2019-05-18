@@ -9,6 +9,7 @@ module Sinks
 
 import Types
 import Classes
+import Utils
 import Data.Void
 import Conduit
 import System.IO
@@ -96,7 +97,7 @@ stlAsciiSink Environment{..} = do
       case may of
         Just (a, b, c) -> do
           liftIO $ do
-            hPutStrLn eHandle "facet normal 0.0 0.0 0.0" --TODO later write normals
+            hPutStrLn eHandle $ toStrNormal a b c
             hPutStrLn eHandle "    outer loop"
             hPutStrLn eHandle (toStr a)
             hPutStrLn eHandle (toStr b)
@@ -108,6 +109,9 @@ stlAsciiSink Environment{..} = do
           liftIO $ hPutStrLn eHandle "endsolid "
           pure ()
     toStr v = "        vertex " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) 
+    toStrNormal a b c = "facet normal " ++ (show . i $ n) ++ " " ++ (show . j $ n) ++ " " ++ (show . k $ n)
+      where
+        n = faceNormal (toPos a) (toPos b) (toPos c)
 
 --- TODO later require optional normals
 --- TODO possibly will require usage of unsigned integers!!!!!
@@ -123,9 +127,7 @@ stlBinarySink Environment{..} = do
       case may of
         Just (a, b, c) -> do
           liftIO $ do
-            write 0.0 --TODO later write normal data
-            write 0.0
-            write 0.0
+            writeN a b c
             writeV a
             writeV b
             writeV c
@@ -139,6 +141,12 @@ stlBinarySink Environment{..} = do
       write $ realToFrac $ getx $ v
       write $ realToFrac $ gety $ v
       write $ realToFrac $ getz $ v
+    writeN a b c = do
+      write $ realToFrac $ i n
+      write $ realToFrac $ j n
+      write $ realToFrac $ k n
+      where
+        n = faceNormal (toPos a) (toPos b) (toPos c)
     write d  = BSL.hPutStr eHandle $ float2leBSL d
 
 
