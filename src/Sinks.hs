@@ -47,7 +47,6 @@ faceSinks = M.fromList
   [ (PlyAscii,  plyAsciiSink')
   , (PlyBinary, plyBinarySink')
   , (Obj,       objSink)
-
   ]
 
 --------------------------------------------------------------------------------

@@ -2,38 +2,17 @@ profiling via
 stack build --profile
 stack exec streamconv -- +RTS -p
 
-check partial parse performance of attoparsec?
-
-performance might be fine, since Meshlab needs 20 sec to open xyz file,
-test binary formats next
-
-pass handle into sinks from outside, making it easier to stream from multiple conduits
-this also makes sources easier, since the parsers can just keep on going
-
-some parsers require an empty line at the end of the input (skipRestOfLine the newline should be optional)
-
-plyVertex parser also consumes the index list, should either parse at most N elements or disallow non-floating
--> use try or <|> in combination with decimal to only allow real doubles
-
 proper testing framework
 
 laserscanner formats
 
 obj face indices start at 1 !
 
-todo .xy source
-
-stl binary source
-
-resolve issues with conversion between stl like format of only positions and index list logic by writing temporary files
-
 facet normal in stl must be indented
 
 mixed import of Bytestring Lazy as BL or BSL
 
 need withBinaryFile and readBinaryFile ?
-
-solver logic which finds conduits required for conversion
 
 dont enforce delimiter on reading xyz etc?
 
@@ -42,3 +21,5 @@ calculate normals for stl
 support other off formats ( http://www.geomview.org/docs/html/OFF.html )
 
 disallow transform to same type?
+
+tmp file names as config
