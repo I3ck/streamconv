@@ -98,18 +98,18 @@ stlAsciiSink Environment{..} = do
         Just (a, b, c) -> do
           liftIO $ do
             hPutStrLn eHandle $ toStrNormal a b c
-            hPutStrLn eHandle "    outer loop"
+            hPutStrLn eHandle "        outer loop"
             hPutStrLn eHandle (toStr a)
             hPutStrLn eHandle (toStr b)
             hPutStrLn eHandle (toStr c)
-            hPutStrLn eHandle "    endloop"
-            hPutStrLn eHandle "endfacet"
+            hPutStrLn eHandle "        endloop"
+            hPutStrLn eHandle "    endfacet"
           go
         Nothing -> do
           liftIO $ hPutStrLn eHandle "endsolid "
           pure ()
-    toStr v = "        vertex " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) 
-    toStrNormal a b c = "facet normal " ++ (show . i $ n) ++ " " ++ (show . j $ n) ++ " " ++ (show . k $ n)
+    toStr v = "            vertex " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) 
+    toStrNormal a b c = "    facet normal " ++ (show . i $ n) ++ " " ++ (show . j $ n) ++ " " ++ (show . k $ n)
       where
         n = faceNormal (toPos a) (toPos b) (toPos c)
 

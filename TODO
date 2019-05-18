@@ -6,10 +6,6 @@ proper testing framework
 
 laserscanner formats
 
-obj face indices start at 1 !
-
-facet normal in stl must be indented
-
 mixed import of Bytestring Lazy as BL or BSL
 
 need withBinaryFile and readBinaryFile ?
