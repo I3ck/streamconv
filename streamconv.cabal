@@ -25,6 +25,8 @@ executable streamconv
                      , Transformers
                      , Sinks
                      , Utils
+                     , Args
+                     , Run
   -- other-extensions:
   build-depends:       base
                      , conduit

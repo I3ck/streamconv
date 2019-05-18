@@ -1,10 +1,13 @@
 module Utils 
   ( faceNormal
   , toPos --- TODO consider refactoring away
+  , maybeRead
+  , maybeToEither
   ) where
 
 import Types
 import Classes
+import qualified Data.Maybe as M
 
 --------------------------------------------------------------------------------
 
@@ -39,6 +42,20 @@ norm p@(Position x y z) = Normal (x/l) (y/l) (z/l)
 
 --------------------------------------------------------------------------------
 
-
 abs :: Position -> Double
 abs (Position x y z) = sqrt $ x*x + y*y + z*z
+
+--------------------------------------------------------------------------------
+
+maybeRead :: (Read a) => String -> Maybe a
+maybeRead s = valueIfNoRemainder =<< (M.listToMaybe . reads $ s)
+  where
+    valueIfNoRemainder (x, rem) | null rem  = Just x
+                                | otherwise = Nothing
+
+--------------------------------------------------------------------------------
+
+maybeToEither :: e -> Maybe a -> Either e a
+maybeToEither _   (Just x) = Right x
+maybeToEither err Nothing  = Left err
+                                
