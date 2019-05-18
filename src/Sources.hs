@@ -85,21 +85,14 @@ stlBinary Environment{..} = go $ (BL.drop $ 80 + 4) eBlobB1 -- 80 bytes for head
 
 --------------------------------------------------------------------------------
 
---- TODO constants file or settings or parameter?
-tmpVertices :: String
-tmpVertices = "streamconvVerts.tmp"
-
-tmpFaces :: String
-tmpFaces = "streamconvFaces.tmp"
-
 --- TODO move to Transformers?
 --- TODO better name
-triplet :: (X a, Y a, Z a) => ConduitT () a IO () -> ConduitT () Face IO () -> ConduitT () (Position, Position, Position) IO ()
-triplet cv cf = do
-  liftIO $ runConduit $ cv .| writeVerts
-  liftIO $ runConduit $ cf .| writeFaces
-  blob <- liftIO $ BL.readFile tmpFaces
-  h    <- liftIO $ openFile tmpVertices ReadMode
+triplet :: (X a, Y a, Z a) => Environment -> ConduitT () a IO () -> ConduitT () Face IO () -> ConduitT () (Position, Position, Position) IO ()
+triplet Environment{..} cv cf = do
+  liftIO $ runConduit $ cv .| writeVerts eTmp2
+  liftIO $ runConduit $ cf .| writeFaces eTmp1
+  blob <- liftIO $ BL.readFile eTmp1
+  h    <- liftIO $ openFile eTmp2 ReadMode
   go h blob
   --- TODO read face blob and index access into positions
   --- TODO consider using seek + handle
@@ -147,9 +140,9 @@ triplet cv cf = do
 
 --- TODO consider moving these helpers?
 --- TODO consider delete of tmp file
-writeVerts :: (X a, Y a, Z a) => ConduitT a Void IO ()
-writeVerts = do
-  h <- liftIO $ openFile tmpVertices WriteMode
+writeVerts :: (X a, Y a, Z a) => String -> ConduitT a Void IO ()
+writeVerts tmp = do
+  h <- liftIO $ openFile tmp WriteMode
   go h
   liftIO $ hClose h
   where
@@ -165,9 +158,9 @@ writeVerts = do
             BL.hPutStr h $ float2beBSL $ realToFrac $ getz $ v
           go h
 
-writeFaces :: ConduitT Face Void IO ()
-writeFaces = do
-  h <- liftIO $ openFile tmpFaces WriteMode
+writeFaces :: String -> ConduitT Face Void IO ()
+writeFaces tmp = do
+  h <- liftIO $ openFile tmp WriteMode
   go h
   liftIO $ hClose h
   where

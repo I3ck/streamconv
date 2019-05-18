@@ -19,5 +19,3 @@ dont enforce delimiter on reading xyz etc?
 support other off formats ( http://www.geomview.org/docs/html/OFF.html )
 
 disallow transform to same type?
-
-tmp file names as config

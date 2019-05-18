@@ -33,6 +33,8 @@ data Environment = Environment
   , eXyzVal  :: Text          -- value delimiter for xyz files
   , eXyzLine :: Text          -- line delimiter for xyz files
   , eHandle  :: Handle        -- handle to write to
+  , eTmp1    :: String        -- path to first tmp file
+  , eTmp2    :: String        -- path to second tmp file
   }
 
 data Format -- MAKE SURE TO UPDATE formats BELOW!!!
@@ -62,6 +64,8 @@ data ArgsRaw = ArgsRaw
   , rpOut :: String
   , rfIn  :: String
   , rfOut :: String
+  , rTmp1 :: String
+  , rTmp2 :: String
   , rList :: Bool
   }
 
@@ -70,5 +74,7 @@ data Args = Args
   , pOut :: String
   , fIn  :: Format
   , fOut :: Format
+  , tmp1 :: String
+  , tmp2 :: String
   , list :: Bool
   }

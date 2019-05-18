@@ -42,7 +42,7 @@ createArgs :: ArgsRaw -> Either String Args ---TODO error types
 createArgs ArgsRaw{..} = do
   fIn  <- maybeToEither "Unknown input format"  $ maybeRead rfIn
   fOut <- maybeToEither "Unknown output format" $ maybeRead rfOut
-  pure Args{pIn = rpIn, pOut = rpOut, fIn = fIn, fOut = fOut, list = rList}
+  pure Args{pIn = rpIn, pOut = rpOut, fIn = fIn, fOut = fOut, tmp1 = rTmp1, tmp2 = rTmp2, list = rList}
 
 opts :: ParserInfo ArgsRaw
 opts = info (helper <*> args)
@@ -72,6 +72,20 @@ args = ArgsRaw
     ( long "fout"
     <> help ("Output format" ++ sFormats)
     <> metavar "STRING"
+    )
+  <*> strOption
+    ( long "tmp1"
+    <> help "Path that shall be used to write temporary data"
+    <> metavar "STRING"
+    <> value "streamconvtmp1.tmp"
+    <> showDefault
+    )
+  <*> strOption
+    ( long "tmp2"
+    <> help "Path that shall be used to write temporary data"
+    <> metavar "STRING"
+    <> value "streamconvtmp2.tmp"
+    <> showDefault
     )
   <*> switch
     ( long "list"
@@ -113,7 +127,7 @@ resolve env from to = result
 
     pos2Pos  env fsource fsink = runConduit $ fsource env .| fsink env
     trip2Pos env fsource fsink = runConduit $ fsource env .| untriple .| fsink env
-    pf2Tri   env fsource fsink = (\(cv, cf) -> runConduit $ triplet cv cf .| fsink env) $ fsource env
+    pf2Tri   env fsource fsink = (\(cv, cf) -> runConduit $ triplet env cv cf .| fsink env) $ fsource env
     pf2Pf    env fsource fsink = (\(cv, cf) -> fsink env cv cf) $ fsource env
     direct   env fsource fsink = runConduit $ fsource env .| fsink env
 
@@ -126,13 +140,15 @@ showCombinations :: [(Format, Format)] -> String
 showCombinations = intercalate "\n" . fmap (\(f, t) -> show f ++ " -> " ++ show t)
 
 --- TODO rename
-readEnvironment :: Handle -> String -> T.Text -> T.Text -> IO Environment
-readEnvironment h p delimVal delimLine = do
+--- TODO strong types
+--- TODO just accepts ArgsRaw?
+readEnvironment :: Handle -> String -> String -> String -> T.Text -> T.Text -> IO Environment
+readEnvironment h p ptmp1 ptmp2 delimVal delimLine = do
   ba1 <- LIO.readFile p
   ba2 <- LIO.readFile p
   bb1 <- BL.readFile p
   bb2 <- BL.readFile p
-  pure Environment{ eBlobA1 = ba1, eBlobA2 = ba2, eBlobB1 = bb1, eBlobB2 = bb2, eXyzVal = delimVal, eXyzLine = delimLine, eHandle = h }
+  pure Environment{ eBlobA1 = ba1, eBlobA2 = ba2, eBlobB1 = bb1, eBlobB2 = bb2, eXyzVal = delimVal, eXyzLine = delimLine, eHandle = h, eTmp1 = ptmp1, eTmp2 = ptmp2 }
 
 main :: IO ()
 main = do
@@ -140,6 +156,6 @@ main = do
   case createArgs rargs of
     Left e         -> die e
     Right Args{..} -> withFile pOut WriteMode (\h -> do
-        env <- readEnvironment h pIn ";" "\n"
+        env <- readEnvironment h pIn tmp1 tmp2 ";" "\n"
         when list $ putStrLn $ showCombinations $ combinations env
         run env fIn fOut)
