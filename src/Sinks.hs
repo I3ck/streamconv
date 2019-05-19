@@ -116,7 +116,7 @@ stlAsciiSink Environment{..} = do
 --- TODO possibly will require usage of unsigned integers!!!!!
 stlBinarySink :: (X a, Y a, Z a) => Environment -> ConduitT (a, a, a) Void IO ()
 stlBinarySink Environment{..} = do
-  liftIO $ mapM_ (\_ -> BL.hPutStr eHandle $ P.runPut $ P.putInt8 0) [0..79] 
+  liftIO $ BL.hPutStr eHandle $ P.runPut $ mapM_ (\_ -> P.putInt8 0) [0..79]
   placeholderPos <- liftIO $ hTell eHandle
   liftIO $ BL.hPutStr eHandle $ P.runPut $ P.putInt32le 0
   go placeholderPos 0
@@ -125,13 +125,12 @@ stlBinarySink Environment{..} = do
       may <- await
       case may of
         Just (a, b, c) -> do
-          liftIO $ do
-            BL.hPutStr eHandle $ P.runPut $ do
-              writeN a b c
-              writeV a
-              writeV b
-              writeV c
-              P.putInt16le 0
+          liftIO $ BL.hPutStr eHandle $ P.runPut $ do
+            writeN a b c
+            writeV a
+            writeV b
+            writeV c
+            P.putInt16le 0
           go placeholderPos (count+1)
         Nothing -> do
           liftIO $ hSeek eHandle AbsoluteSeek placeholderPos
@@ -148,8 +147,6 @@ stlBinarySink Environment{..} = do
       where
         n = faceNormal (toPos a) (toPos b) (toPos c)
     write d  = P.putFloatle $ realToFrac d
-
-
 
 --- TODO lots of duped code
 plyTripletAsciiSink :: (X a, Y a, Z a) => Environment -> ConduitT (a, a, a) Void IO ()
@@ -291,7 +288,6 @@ plyBinarySink Environment{..} = do
       may <- await
       case may of
         Just v -> do
-          ---TODO likely very inefficient, at least use 'runPut' only once for all 3
           liftIO $ BL.hPutStr eHandle $ P.runPut $ do
             P.putFloatbe $ realToFrac $ getx v
             P.putFloatbe $ realToFrac $ gety v
@@ -366,11 +362,11 @@ plyOnlyFaceBinary Environment{..} = go 0
       may <- await
       case may of
         Just (Face a b c)  -> do 
-          liftIO $ do 
-            BL.hPutStr eHandle $ P.runPut $ P.putInt8 3
-            BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ fromIntegral a
-            BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ fromIntegral b
-            BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ fromIntegral c
+          liftIO $ BL.hPutStr eHandle $ P.runPut $ do 
+            P.putInt8 3
+            P.putInt32be $ fromIntegral a
+            P.putInt32be $ fromIntegral b
+            P.putInt32be $ fromIntegral c
           go $ count+1
         Nothing -> pure count
     
@@ -400,7 +396,7 @@ plyTripletBinarySink Environment{..} = do
       may <- await
       case may of
         Just (a, b, c) -> do
-          liftIO $ do 
+          liftIO $ BL.hPutStr eHandle $ P.runPut $ do 
             writeVertex a
             writeVertex b
             writeVertex c
@@ -410,7 +406,7 @@ plyTripletBinarySink Environment{..} = do
               replacementVs       = "element vertex " ++ show (3 * countFs) ++ "\ncomment "
               placeholderFslength = length placeholderFs
               replacementFs       = "element face " ++ show countFs ++ "\ncomment "
-          mapM_ writeFace [0..countFs-1] --- TODO error if no faces!?
+          BL.hPutStr eHandle $ P.runPut $ mapM_ writeFace [0..countFs-1] --- TODO error if no faces!?
           hSeek eHandle AbsoluteSeek placeholderVsPos
           hPutStrLn eHandle $ replacementVs ++ replicate (placeholderVslength - length replacementVs) '#'
           hSeek eHandle AbsoluteSeek placeholderFsPos
@@ -420,11 +416,11 @@ plyTripletBinarySink Environment{..} = do
     placeholderVs = "element vertex 0\ncomment ##################################"
     placeholderFs = "element face 0\ncomment ##################################"
     writeFace fid = do
-      BL.hPutStr eHandle $ P.runPut $ P.putInt8 $ 3
-      BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ (3*fid+0)
-      BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ (3*fid+1)
-      BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ (3*fid+2)
-    writeVertex v = BL.hPutStr eHandle $ P.runPut $ do
+      P.putInt8 3
+      P.putInt32be $ 3*fid+0
+      P.putInt32be $ 3*fid+1
+      P.putInt32be $ 3*fid+2
+    writeVertex v = do
       P.putFloatbe $ realToFrac $ getx v
       P.putFloatbe $ realToFrac $ gety v
       P.putFloatbe $ realToFrac $ getz v
@@ -514,10 +510,3 @@ xySink Environment{..} = go
       . ((show . gety $ v) ++)
       . (T.unpack eXyzLine ++))
       ""
-
---- TODO is specialized for big endian, name accordingly and offer le version
---- https://hackage.haskell.org/package/binary-0.8.6.0/docs/Data-Binary-Put.html
---double2BSL :: Double -> BSL.ByteString
---double2BSL = P.runPut . P.putDoublebe
-
----TODO precision in method names
