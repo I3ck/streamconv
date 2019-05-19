@@ -13,7 +13,6 @@ import Utils
 import Data.Void
 import Conduit
 import System.IO
-import Data.Int
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.Binary.Put as P
@@ -117,9 +116,9 @@ stlAsciiSink Environment{..} = do
 --- TODO possibly will require usage of unsigned integers!!!!!
 stlBinarySink :: (X a, Y a, Z a) => Environment -> ConduitT (a, a, a) Void IO ()
 stlBinarySink Environment{..} = do
-  liftIO $ mapM_ (\_ -> BL.hPutStr eHandle $ uchar2BSL 0) [0..79] 
+  liftIO $ mapM_ (\_ -> BL.hPutStr eHandle $ P.runPut $ P.putInt8 0) [0..79] 
   placeholderPos <- liftIO $ hTell eHandle
-  liftIO $ BL.hPutStr eHandle $ int2leBSL 0
+  liftIO $ BL.hPutStr eHandle $ P.runPut $ P.putInt32le 0
   go placeholderPos 0
   where
     go placeholderPos count = do
@@ -127,27 +126,28 @@ stlBinarySink Environment{..} = do
       case may of
         Just (a, b, c) -> do
           liftIO $ do
-            writeN a b c
-            writeV a
-            writeV b
-            writeV c
-            BL.hPutStr eHandle $ int16ToleBSL 0
+            BL.hPutStr eHandle $ P.runPut $ do
+              writeN a b c
+              writeV a
+              writeV b
+              writeV c
+              P.putInt16le 0
           go placeholderPos (count+1)
         Nothing -> do
           liftIO $ hSeek eHandle AbsoluteSeek placeholderPos
-          liftIO $ BL.hPutStr eHandle $ int2leBSL count
+          liftIO $ BL.hPutStr eHandle $ P.runPut $ P.putInt32le count
           pure ()
     writeV v = do
-      write $ realToFrac $ getx $ v
-      write $ realToFrac $ gety $ v
-      write $ realToFrac $ getz $ v
+      write $ getx v
+      write $ gety v
+      write $ getz v
     writeN a b c = do
-      write $ realToFrac $ i n
-      write $ realToFrac $ j n
-      write $ realToFrac $ k n
+      write $ i n
+      write $ j n
+      write $ k n
       where
         n = faceNormal (toPos a) (toPos b) (toPos c)
-    write d  = BL.hPutStr eHandle $ float2leBSL d
+    write d  = P.putFloatle $ realToFrac d
 
 
 
@@ -292,10 +292,10 @@ plyBinarySink Environment{..} = do
       case may of
         Just v -> do
           ---TODO likely very inefficient, at least use 'runPut' only once for all 3
-          liftIO $ do 
-            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getx $ v
-            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ gety $ v
-            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getz $ v
+          liftIO $ BL.hPutStr eHandle $ P.runPut $ do
+            P.putFloatbe $ realToFrac $ getx v
+            P.putFloatbe $ realToFrac $ gety v
+            P.putFloatbe $ realToFrac $ getz v
           go (count+1) placeholderPos
         Nothing -> do
           let placeholderlength = length placeholder
@@ -351,10 +351,10 @@ plyOnlyVertexBinary Environment{..} = go 0
       may <- await
       case may of
         Just v  -> do 
-          liftIO $ do 
-            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getx $ v
-            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ gety $ v
-            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getz $ v
+          liftIO $ BL.hPutStr eHandle $ P.runPut $ do
+            P.putFloatbe $ realToFrac $ getx v
+            P.putFloatbe $ realToFrac $ gety v
+            P.putFloatbe $ realToFrac $ getz v
           go $ count+1
         Nothing -> pure count
 
@@ -367,10 +367,10 @@ plyOnlyFaceBinary Environment{..} = go 0
       case may of
         Just (Face a b c)  -> do 
           liftIO $ do 
-            BL.hPutStr eHandle $ uchar2BSL 3
-            BL.hPutStr eHandle $ int2beBSL $ fromIntegral a
-            BL.hPutStr eHandle $ int2beBSL $ fromIntegral b
-            BL.hPutStr eHandle $ int2beBSL $ fromIntegral c
+            BL.hPutStr eHandle $ P.runPut $ P.putInt8 3
+            BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ fromIntegral a
+            BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ fromIntegral b
+            BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ fromIntegral c
           go $ count+1
         Nothing -> pure count
     
@@ -420,14 +420,14 @@ plyTripletBinarySink Environment{..} = do
     placeholderVs = "element vertex 0\ncomment ##################################"
     placeholderFs = "element face 0\ncomment ##################################"
     writeFace fid = do
-      BL.hPutStr eHandle $ uchar2BSL 3
-      BL.hPutStr eHandle $ int2beBSL (3*fid+0)
-      BL.hPutStr eHandle $ int2beBSL (3*fid+1)
-      BL.hPutStr eHandle $ int2beBSL (3*fid+2)
-    writeVertex v   = do
-      BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getx $ v
-      BL.hPutStr eHandle $ float2beBSL $ realToFrac $ gety $ v
-      BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getz $ v
+      BL.hPutStr eHandle $ P.runPut $ P.putInt8 $ 3
+      BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ (3*fid+0)
+      BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ (3*fid+1)
+      BL.hPutStr eHandle $ P.runPut $ P.putInt32be $ (3*fid+2)
+    writeVertex v = BL.hPutStr eHandle $ P.runPut $ do
+      P.putFloatbe $ realToFrac $ getx v
+      P.putFloatbe $ realToFrac $ gety v
+      P.putFloatbe $ realToFrac $ getz v
 
 --------------------------------------------------------------------------------
 
@@ -521,20 +521,3 @@ xySink Environment{..} = go
 --double2BSL = P.runPut . P.putDoublebe
 
 ---TODO precision in method names
-float2beBSL :: Float -> BL.ByteString
-float2beBSL = P.runPut . P.putFloatbe
-
-float2leBSL :: Float -> BL.ByteString
-float2leBSL = P.runPut . P.putFloatle
-
-uchar2BSL :: Int8 -> BL.ByteString
-uchar2BSL = P.runPut . P.putInt8
-
-int2beBSL :: Int32 -> BL.ByteString
-int2beBSL = P.runPut . P.putInt32be
-
-int2leBSL :: Int32 -> BL.ByteString
-int2leBSL = P.runPut . P.putInt32le
-
-int16ToleBSL :: Int16 -> BL.ByteString
-int16ToleBSL = P.runPut . P.putInt16le
