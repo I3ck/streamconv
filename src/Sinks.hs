@@ -407,7 +407,7 @@ plyTripletBinarySink Environment{..} = do
               replacementVs       = "element vertex " ++ show (3 * countFs) ++ "\ncomment "
               placeholderFslength = length placeholderFs
               replacementFs       = "element face " ++ show countFs ++ "\ncomment "
-          BL.hPutStr eHandle $ P.runPut $ mapM_ writeFace [0..countFs-1] --- TODO error if no faces!?
+          mapM_ (BL.hPutStr eHandle . P.runPut . writeFace) [0..countFs-1] --- TODO error if no faces!?
           hSeek eHandle AbsoluteSeek placeholderVsPos
           hPutStrLn eHandle $ replacementVs ++ replicate (placeholderVslength - length replacementVs) '#'
           hSeek eHandle AbsoluteSeek placeholderFsPos
