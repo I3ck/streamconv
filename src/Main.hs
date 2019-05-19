@@ -34,6 +34,6 @@ main = do
   case createArgs rargs of
     Left e         -> die e
     Right Args{..} -> withFile pOut WriteMode (\h -> do
-        env <- readEnvironment h pIn tmp1 tmp2 ";" "\n"
+        env <- readEnvironment h pIn tmp1 tmp2 (T.pack xyzVal) (T.pack xyzLine)
         when list $ putStrLn $ showCombinations $ combinations env
         run env fIn fOut)

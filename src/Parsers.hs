@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Parsers
-  ( xyzLine
+  ( Parsers.xyzLine
   , skipSTLAsciiHeader
   , stlFace
   , plyVertex

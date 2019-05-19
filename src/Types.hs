@@ -60,21 +60,25 @@ formats =
   ]
 
 data ArgsRaw = ArgsRaw
-  { rpIn  :: String
-  , rpOut :: String
-  , rfIn  :: String
-  , rfOut :: String
-  , rTmp1 :: String
-  , rTmp2 :: String
-  , rList :: Bool
+  { rpIn     :: String
+  , rpOut    :: String
+  , rfIn     :: String
+  , rfOut    :: String
+  , rTmp1    :: String
+  , rTmp2    :: String
+  , rXyzVal  :: String
+  , rXyzLine :: String
+  , rList    :: Bool
   }
 
 data Args = Args
-  { pIn  :: String
-  , pOut :: String
-  , fIn  :: Format
-  , fOut :: Format
-  , tmp1 :: String
-  , tmp2 :: String
-  , list :: Bool
+  { pIn     :: String
+  , pOut    :: String
+  , fIn     :: Format
+  , fOut    :: Format
+  , tmp1    :: String
+  , tmp2    :: String
+  , xyzVal  :: String
+  , xyzLine :: String
+  , list    :: Bool
   }

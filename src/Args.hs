@@ -16,7 +16,7 @@ createArgs :: ArgsRaw -> Either String Args ---TODO error types
 createArgs ArgsRaw{..} = do
   fIn  <- maybeToEither "Unknown input format"  $ maybeRead rfIn
   fOut <- maybeToEither "Unknown output format" $ maybeRead rfOut
-  pure Args{pIn = rpIn, pOut = rpOut, fIn = fIn, fOut = fOut, tmp1 = rTmp1, tmp2 = rTmp2, list = rList}
+  pure Args{pIn = rpIn, pOut = rpOut, fIn = fIn, fOut = fOut, tmp1 = rTmp1, tmp2 = rTmp2, xyzVal = rXyzVal, xyzLine = rXyzLine, list = rList}
 
 --------------------------------------------------------------------------------
 
@@ -63,6 +63,20 @@ args = ArgsRaw
     <> help "Path that shall be used to write temporary data"
     <> metavar "STRING"
     <> value "streamconvtmp2.tmp"
+    <> showDefault
+    )
+  <*> strOption
+    ( long "xyzval"
+    <> help "Delimiter to be used between xyz values"
+    <> metavar "STRING"
+    <> value ";"
+    <> showDefault
+    )
+  <*> strOption
+    ( long "xyzline"
+    <> help "Delimiter to be used between xyz lines"
+    <> metavar "STRING"
+    <> value "\n"
     <> showDefault
     )
   <*> switch
