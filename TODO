@@ -6,8 +6,6 @@ proper testing framework
 
 laserscanner formats
 
-mixed import of Bytestring Lazy as BL or BSL
-
 need withBinaryFile and readBinaryFile ?
 
 dont enforce delimiter on reading xyz etc?

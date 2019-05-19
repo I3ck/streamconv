@@ -17,7 +17,7 @@ import Data.Int
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.Binary.Put as P
-import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Lazy as BL
 
 --------------------------------------------------------------------------------
 
@@ -117,9 +117,9 @@ stlAsciiSink Environment{..} = do
 --- TODO possibly will require usage of unsigned integers!!!!!
 stlBinarySink :: (X a, Y a, Z a) => Environment -> ConduitT (a, a, a) Void IO ()
 stlBinarySink Environment{..} = do
-  liftIO $ mapM_ (\_ -> BSL.hPutStr eHandle $ uchar2BSL 0) [0..79] 
+  liftIO $ mapM_ (\_ -> BL.hPutStr eHandle $ uchar2BSL 0) [0..79] 
   placeholderPos <- liftIO $ hTell eHandle
-  liftIO $ BSL.hPutStr eHandle $ int2leBSL 0
+  liftIO $ BL.hPutStr eHandle $ int2leBSL 0
   go placeholderPos 0
   where
     go placeholderPos count = do
@@ -131,11 +131,11 @@ stlBinarySink Environment{..} = do
             writeV a
             writeV b
             writeV c
-            BSL.hPutStr eHandle $ int16ToleBSL 0
+            BL.hPutStr eHandle $ int16ToleBSL 0
           go placeholderPos (count+1)
         Nothing -> do
           liftIO $ hSeek eHandle AbsoluteSeek placeholderPos
-          liftIO $ BSL.hPutStr eHandle $ int2leBSL count
+          liftIO $ BL.hPutStr eHandle $ int2leBSL count
           pure ()
     writeV v = do
       write $ realToFrac $ getx $ v
@@ -147,7 +147,7 @@ stlBinarySink Environment{..} = do
       write $ realToFrac $ k n
       where
         n = faceNormal (toPos a) (toPos b) (toPos c)
-    write d  = BSL.hPutStr eHandle $ float2leBSL d
+    write d  = BL.hPutStr eHandle $ float2leBSL d
 
 
 
@@ -293,9 +293,9 @@ plyBinarySink Environment{..} = do
         Just v -> do
           ---TODO likely very inefficient, at least use 'runPut' only once for all 3
           liftIO $ do 
-            BSL.hPutStr eHandle $ float2beBSL $ realToFrac $ getx $ v
-            BSL.hPutStr eHandle $ float2beBSL $ realToFrac $ gety $ v
-            BSL.hPutStr eHandle $ float2beBSL $ realToFrac $ getz $ v
+            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getx $ v
+            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ gety $ v
+            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getz $ v
           go (count+1) placeholderPos
         Nothing -> do
           let placeholderlength = length placeholder
@@ -352,9 +352,9 @@ plyOnlyVertexBinary Environment{..} = go 0
       case may of
         Just v  -> do 
           liftIO $ do 
-            BSL.hPutStr eHandle $ float2beBSL $ realToFrac $ getx $ v
-            BSL.hPutStr eHandle $ float2beBSL $ realToFrac $ gety $ v
-            BSL.hPutStr eHandle $ float2beBSL $ realToFrac $ getz $ v
+            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getx $ v
+            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ gety $ v
+            BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getz $ v
           go $ count+1
         Nothing -> pure count
 
@@ -367,10 +367,10 @@ plyOnlyFaceBinary Environment{..} = go 0
       case may of
         Just (Face a b c)  -> do 
           liftIO $ do 
-            BSL.hPutStr eHandle $ uchar2BSL 3
-            BSL.hPutStr eHandle $ int2beBSL $ fromIntegral a
-            BSL.hPutStr eHandle $ int2beBSL $ fromIntegral b
-            BSL.hPutStr eHandle $ int2beBSL $ fromIntegral c
+            BL.hPutStr eHandle $ uchar2BSL 3
+            BL.hPutStr eHandle $ int2beBSL $ fromIntegral a
+            BL.hPutStr eHandle $ int2beBSL $ fromIntegral b
+            BL.hPutStr eHandle $ int2beBSL $ fromIntegral c
           go $ count+1
         Nothing -> pure count
     
@@ -420,14 +420,14 @@ plyTripletBinarySink Environment{..} = do
     placeholderVs = "element vertex 0\ncomment ##################################"
     placeholderFs = "element face 0\ncomment ##################################"
     writeFace fid = do
-      BSL.hPutStr eHandle $ uchar2BSL 3
-      BSL.hPutStr eHandle $ int2beBSL (3*fid+0)
-      BSL.hPutStr eHandle $ int2beBSL (3*fid+1)
-      BSL.hPutStr eHandle $ int2beBSL (3*fid+2)
+      BL.hPutStr eHandle $ uchar2BSL 3
+      BL.hPutStr eHandle $ int2beBSL (3*fid+0)
+      BL.hPutStr eHandle $ int2beBSL (3*fid+1)
+      BL.hPutStr eHandle $ int2beBSL (3*fid+2)
     writeVertex v   = do
-      BSL.hPutStr eHandle $ float2beBSL $ realToFrac $ getx $ v
-      BSL.hPutStr eHandle $ float2beBSL $ realToFrac $ gety $ v
-      BSL.hPutStr eHandle $ float2beBSL $ realToFrac $ getz $ v
+      BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getx $ v
+      BL.hPutStr eHandle $ float2beBSL $ realToFrac $ gety $ v
+      BL.hPutStr eHandle $ float2beBSL $ realToFrac $ getz $ v
 
 --------------------------------------------------------------------------------
 
@@ -521,20 +521,20 @@ xySink Environment{..} = go
 --double2BSL = P.runPut . P.putDoublebe
 
 ---TODO precision in method names
-float2beBSL :: Float -> BSL.ByteString
+float2beBSL :: Float -> BL.ByteString
 float2beBSL = P.runPut . P.putFloatbe
 
-float2leBSL :: Float -> BSL.ByteString
+float2leBSL :: Float -> BL.ByteString
 float2leBSL = P.runPut . P.putFloatle
 
-uchar2BSL :: Int8 -> BSL.ByteString
+uchar2BSL :: Int8 -> BL.ByteString
 uchar2BSL = P.runPut . P.putInt8
 
-int2beBSL :: Int32 -> BSL.ByteString
+int2beBSL :: Int32 -> BL.ByteString
 int2beBSL = P.runPut . P.putInt32be
 
-int2leBSL :: Int32 -> BSL.ByteString
+int2leBSL :: Int32 -> BL.ByteString
 int2leBSL = P.runPut . P.putInt32le
 
-int16ToleBSL :: Int16 -> BSL.ByteString
+int16ToleBSL :: Int16 -> BL.ByteString
 int16ToleBSL = P.runPut . P.putInt16le
