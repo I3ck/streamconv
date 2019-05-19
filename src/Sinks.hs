@@ -95,14 +95,15 @@ stlAsciiSink Environment{..} = do
       may <- await
       case may of
         Just (a, b, c) -> do
-          liftIO $ do
-            hPutStrLn eHandle $ toStrNormal a b c
-            hPutStrLn eHandle "        outer loop"
-            hPutStrLn eHandle (toStr a)
-            hPutStrLn eHandle (toStr b)
-            hPutStrLn eHandle (toStr c)
-            hPutStrLn eHandle "        endloop"
-            hPutStrLn eHandle "    endfacet"
+          liftIO $ hPutStrLn eHandle $ unlines
+            [ toStrNormal a b c
+            , "        outer loop"
+            , toStr a
+            , toStr b
+            , toStr c
+            , "        endloop"
+            , "    endfacet"
+            ]
           go
         Nothing -> do
           liftIO $ hPutStrLn eHandle "endsolid "
