@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
 module Main where
@@ -17,23 +16,32 @@ import qualified Data.Text.Lazy.IO as LIO
 
 --------------------------------------------------------------------------------
 
---- TODO rename
---- TODO strong types
---- TODO just accepts ArgsRaw?
-readEnvironment :: Handle -> String -> String -> String -> T.Text -> T.Text -> IO Environment
-readEnvironment h p ptmp1 ptmp2 delimVal delimLine = do
-  ba1 <- LIO.readFile p
-  ba2 <- LIO.readFile p
-  bb1 <- BL.readFile p
-  bb2 <- BL.readFile p
-  pure Environment{ eBlobA1 = ba1, eBlobA2 = ba2, eBlobB1 = bb1, eBlobB2 = bb2, eXyzVal = delimVal, eXyzLine = delimLine, eHandle = h, eTmp1 = ptmp1, eTmp2 = ptmp2 }
-
 main :: IO ()
 main = do
   rargs <- execParser opts
   case createArgs rargs of
     Left e         -> die e
-    Right Args{..} -> withFile pOut WriteMode (\h -> do
-        env <- readEnvironment h pIn tmp1 tmp2 (T.pack xyzVal) (T.pack xyzLine)
+    Right a@Args{..} -> withFile pOut WriteMode (\h -> do
+        env <- createEnvironment h a
         when list $ putStrLn $ showCombinations $ combinations env
         run env fIn fOut)
+
+--------------------------------------------------------------------------------
+
+createEnvironment :: Handle -> Args -> IO Environment
+createEnvironment h Args{..} = do
+  ba1 <- LIO.readFile pIn
+  ba2 <- LIO.readFile pIn
+  bb1 <- BL.readFile pIn
+  bb2 <- BL.readFile pIn
+  pure Environment
+    { eBlobA1  = ba1
+    , eBlobA2  = ba2
+    , eBlobB1  = bb1
+    , eBlobB2  = bb2
+    , eXyzVal  = T.pack xyzVal
+    , eXyzLine = T.pack xyzLine
+    , eHandle  = h
+    , eTmp1    = tmp1
+    , eTmp2    = tmp2 
+    }
