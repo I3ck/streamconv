@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE BangPatterns #-}
 
 module Sinks
   ( xyzSinks
@@ -67,7 +68,7 @@ plyAsciiSink Environment{..} = do
     ]
   go 0 placeholderPos
   where
-    go count placeholderPos = do
+    go !count !placeholderPos = do
       may <- await
       case may of
         Just x -> do
@@ -122,7 +123,7 @@ stlBinarySink Environment{..} = do
   liftIO $ BL.hPutStr eHandle $ P.runPut $ P.putInt32le 0
   go placeholderPos 0
   where
-    go placeholderPos count = do
+    go !placeholderPos !count = do
       may <- await
       case may of
         Just (a, b, c) -> do
@@ -172,7 +173,7 @@ plyTripletAsciiSink Environment{..} = do
   go 0 placeholderVsPos placeholderFsPos
   where
     --- TODO super messy now, cleanup
-    go countFs placeholderVsPos placeholderFsPos = do
+    go !countFs !placeholderVsPos !placeholderFsPos = do
       may <- await
       case may of
         Just (a, b, c) -> do
@@ -241,7 +242,7 @@ plyAsciiSink' e@Environment{..} cv cf = do
 plyOnlyVertexAscii :: (X a, Y a, Z a) => Environment -> ConduitT a Void IO Int
 plyOnlyVertexAscii Environment{..} = go 0
   where
-    go count = do
+    go !count = do
       may <- await
       case may of
         Just v  -> do 
@@ -254,7 +255,7 @@ plyOnlyVertexAscii Environment{..} = go 0
 plyOnlyFaceAscii :: Environment -> ConduitT Face Void IO Int
 plyOnlyFaceAscii Environment{..} = go 0
   where
-    go count = do
+    go !count = do
       may <- await
       case may of
         Just v  -> do 
@@ -285,7 +286,7 @@ plyBinarySink Environment{..} = do
     ]
   go 0 placeholderPos
   where
-    go count placeholderPos = do
+    go !count !placeholderPos = do
       may <- await
       case may of
         Just v -> do
@@ -344,7 +345,7 @@ plyBinarySink' e@Environment{..} cv cf = do
 plyOnlyVertexBinary :: (X a, Y a, Z a) => Environment -> ConduitT a Void IO Int
 plyOnlyVertexBinary Environment{..} = go 0
   where
-    go count = do
+    go !count = do
       may <- await
       case may of
         Just v  -> do 
@@ -359,7 +360,7 @@ plyOnlyVertexBinary Environment{..} = go 0
 plyOnlyFaceBinary :: Environment -> ConduitT Face Void IO Int
 plyOnlyFaceBinary Environment{..} = go 0
   where
-    go count = do
+    go !count = do
       may <- await
       case may of
         Just (Face a b c)  -> do 
@@ -393,7 +394,7 @@ plyTripletBinarySink Environment{..} = do
   go 0 placeholderVsPos placeholderFsPos
   where
     --- TODO super messy now, cleanup
-    go countFs placeholderVsPos placeholderFsPos = do
+    go !countFs !placeholderVsPos !placeholderFsPos = do
       may <- await
       case may of
         Just (a, b, c) -> do
@@ -461,7 +462,7 @@ objOnlyFace Environment{..} = go
 objTripletSink :: (X a, Y a, Z a) => Environment -> ConduitT (a, a, a) Void IO ()
 objTripletSink Environment{..} = go 0
   where
-    go countFs = do
+    go !countFs = do
       may <- await
       case may of
         Just (a, b, c) -> do

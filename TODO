@@ -11,3 +11,7 @@ need withBinaryFile and readBinaryFile ?
 support other off formats ( http://www.geomview.org/docs/html/OFF.html )
 
 disallow transform to same type?
+
+determine input format automatically
+
+only require bin flag for output and determine type from ending?
