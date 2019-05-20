@@ -5,6 +5,7 @@ module Args
   , createArgs
   ) where
 
+import Constants
 import Types
 import Utils
 import Data.List
@@ -23,8 +24,8 @@ createArgs ArgsRaw{..} = do
 opts :: ParserInfo ArgsRaw
 opts = info (helper <*> args)
   ( fullDesc
-  <> progDesc "streamconv 0.0.1 - Memory efficient conversion between pointcloud formats. Use --help for more information (c) Martin Buck"
-  <> header "streamconv 0.0.1 (c) Martin Buck"
+  <> progDesc ("streamconv " ++ version ++" - Memory efficient conversion between pointcloud formats. Use --help for more information (c) Martin Buck")
+  <> header ("streamconv " ++ version ++ " (c) Martin Buck")
   )
 
 --------------------------------------------------------------------------------

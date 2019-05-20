@@ -27,6 +27,7 @@ executable streamconv
                      , Utils
                      , Args
                      , Run
+                     , Constants
   -- other-extensions:
   build-depends:       base
                      , conduit
