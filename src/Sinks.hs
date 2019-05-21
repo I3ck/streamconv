@@ -48,6 +48,7 @@ faceSinks = M.fromList
   [ (PlyAscii,  plyAsciiSink')
   , (PlyBinary, plyBinarySink')
   , (Obj,       objSink)
+  , (Off,       offSink)
   ]
 
 --------------------------------------------------------------------------------
@@ -512,3 +513,25 @@ xySink Environment{..} = go
       . ((show . gety $ v) ++)
       . (T.unpack eXyzLine ++))
       ""
+
+offSink :: (X a, Y a, Z a) => Environment -> ConduitT () a IO () -> ConduitT () Face IO () -> IO ()
+offSink e@Environment{..} cv cf = do
+  -- TODO lots of duped code
+  liftIO $ hPutStrLn eHandle "OFF"
+  placeholderPos <- liftIO $ hTell eHandle
+  liftIO $ hPutStr eHandle placeHolder
+  countVs <- runConduit $ cv .| offOnlyVertex e
+  countFs <- runConduit $ cf .| offOnlyFace e
+  let placeHolderLength = length placeHolder
+      replacement       = show countVs ++ " " ++ show countFs ++ " " ++ show (3*countFs) ++ "\n#"
+  hSeek eHandle AbsoluteSeek placeholderPos
+  hPutStrLn eHandle $ replacement ++ replicate (placeHolderLength - length replacement) '#'
+
+  where --TODO these must be helper methods elsewhere
+    placeHolder = "0 0 0\n###########################################################################"
+
+offOnlyVertex :: (X a, Y a, Z a) => Environment -> ConduitT a Void IO Int
+offOnlyVertex = plyOnlyVertexAscii
+
+offOnlyFace :: Environment -> ConduitT Face Void IO Int
+offOnlyFace = plyOnlyFaceAscii
