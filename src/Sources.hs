@@ -7,8 +7,6 @@ module Sources
   , ply
   , obj
   , off
-  , triplet
-
   , posSources
   , pfSources
   , tripletSources
@@ -16,16 +14,12 @@ module Sources
 
 import Types
 import Conduit
-import Classes
-import System.IO
-import Data.Int
 import qualified Data.Map as M
 import qualified Data.Text.Lazy as L
 import qualified Parsers as P
 import Data.Attoparsec.Text.Lazy as A
 import qualified Data.Binary.Get as G
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.Binary.Put as P
 
 posSources :: M.Map Format (Environment -> ConduitT () Position IO ())
 posSources = M.fromList 
@@ -82,107 +76,6 @@ stlBinary Environment{..} = go $ (BL.drop $ 80 + 4) eBlobB1 -- 80 bytes for head
       G.getInt16le             -- 50
       pure (Position ax ay az, Position bx by bz, Position cx cy cz)
     c = fmap realToFrac
-
---------------------------------------------------------------------------------
-
---- TODO move to Transformers?
---- TODO better name
-triplet :: (X a, Y a, Z a) => Environment -> ConduitT () a IO () -> ConduitT () Face IO () -> ConduitT () (Position, Position, Position) IO ()
-triplet Environment{..} cv cf = do
-  liftIO $ runConduit $ cv .| writeVerts eTmp2
-  liftIO $ runConduit $ cf .| writeFaces eTmp1
-  blob <- liftIO $ BL.readFile eTmp1
-  h    <- liftIO $ openFile eTmp2 ReadMode
-  go h blob
-  --- TODO read face blob and index access into positions
-  --- TODO consider using seek + handle
-  liftIO $ hClose h
-  where
-    go h input = case G.runGetIncremental getFace `G.pushChunks` BL.take 12 input of
-      G.Fail{}                -> pure ()
-      G.Partial{}             -> pure ()
-      G.Done _ _ (Face a b c) -> do
-        mva <- liftIO $ fetchVertex h $ fromIntegral a
-        mvb <- liftIO $ fetchVertex h $ fromIntegral b
-        mvc <- liftIO $ fetchVertex h $ fromIntegral c
-        case (mva, mvb, mvc) of
-          (Just va, Just vb, Just vc) -> do
-            yield (va, vb, vc)
-            go h (BL.drop 12 input)
-          _ -> pure ()
-
-        --- TODO seek to a b c in h and if all suceed, yield triplet
-
-
-    getFace = do
-      a <- G.getInt32be -- 4
-      b <- G.getInt32be -- 8
-      c <- G.getInt32be -- 12
-      pure $ Face (fromIntegral a) (fromIntegral b) (fromIntegral c)
-
-    fetchVertex h i = do
-      hSeek h AbsoluteSeek (i * 12)
-      blobv <- BL.hGet h 12
-      case G.runGetIncremental getVertex `G.pushChunks` blobv of
-        G.Fail{}     -> pure Nothing
-        G.Partial{}  -> pure Nothing
-        G.Done _ _ v -> pure . pure $ v
-
-
-    getVertex = do
-      x <- G.getFloatbe -- 4
-      y <- G.getFloatbe -- 8
-      z <- G.getFloatbe -- 12
-      pure $ Position (realToFrac x) (realToFrac y) (realToFrac z)
-
-
-
-
---- TODO consider moving these helpers?
---- TODO consider delete of tmp file
-writeVerts :: (X a, Y a, Z a) => String -> ConduitT a Void IO ()
-writeVerts tmp = do
-  h <- liftIO $ openFile tmp WriteMode
-  go h
-  liftIO $ hClose h
-  where
-    go h = do
-      may <- await
-      case may of
-        Nothing -> pure ()
-        Just v  -> do 
-          liftIO $ do
-            ---TODO conversion to float currently, keep double precision!
-            BL.hPutStr h $ float2beBSL $ realToFrac $ getx $ v
-            BL.hPutStr h $ float2beBSL $ realToFrac $ gety $ v
-            BL.hPutStr h $ float2beBSL $ realToFrac $ getz $ v
-          go h
-
-writeFaces :: String -> ConduitT Face Void IO ()
-writeFaces tmp = do
-  h <- liftIO $ openFile tmp WriteMode
-  go h
-  liftIO $ hClose h
-  where
-    go h = do
-      may <- await
-      case may of
-        Nothing -> pure ()
-        Just (Face a b c) -> do 
-          liftIO $ do
-            --- TODO MIGHT be lossy
-            BL.hPutStr h $ int2beBSL $ fromIntegral a
-            BL.hPutStr h $ int2beBSL $ fromIntegral b
-            BL.hPutStr h $ int2beBSL $ fromIntegral c
-          go h
-
---- TODO duplicate impl, should drop anyway
-float2beBSL :: Float -> BL.ByteString
-float2beBSL = P.runPut . P.putFloatbe
-
---- TODO duplicate impl, should drop anyway
-int2beBSL :: Int32 -> BL.ByteString
-int2beBSL = P.runPut . P.putInt32be
 
 --------------------------------------------------------------------------------
 
