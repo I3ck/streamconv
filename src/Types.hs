@@ -24,6 +24,8 @@ data Face = Face
   , b :: Int
   , c :: Int
   } deriving (Show)
+  
+--------------------------------------------------------------------------------
 
 data Environment = Environment
   { eBlobA1  :: L.Text        -- file read as lazy text
@@ -36,6 +38,8 @@ data Environment = Environment
   , eTmp1    :: String        -- path to first tmp file
   , eTmp2    :: String        -- path to second tmp file
   }
+
+--------------------------------------------------------------------------------
 
 data Format -- MAKE SURE TO UPDATE formats BELOW!!!
   = StlAscii
@@ -58,6 +62,8 @@ formats =
   , Xy
   , Xyz
   ]
+
+--------------------------------------------------------------------------------
 
 data ArgsRaw = ArgsRaw
   { rpIn     :: String

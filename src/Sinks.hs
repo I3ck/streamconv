@@ -112,6 +112,8 @@ stlAsciiSink Environment{..} = do
       where
         n = faceNormal (toPos a) (toPos b) (toPos c)
 
+--------------------------------------------------------------------------------
+
 --- TODO later require optional normals
 --- TODO possibly will require usage of unsigned integers!!!!!
 stlBinarySink :: (X a, Y a, Z a) => Environment -> ConduitT (a, a, a) Void IO ()
@@ -187,6 +189,8 @@ plyAsciiSink' e@Environment{..} cv cf = do
     placeholderVs = "element vertex 0\ncomment ##################################"
     placeholderFs = "element face 0\ncomment ##################################"
 
+--------------------------------------------------------------------------------
+
 -- assumes handle at right pos
 plyOnlyVertexAscii :: (X a, Y a, Z a) => Environment -> ConduitT a Void IO Int
 plyOnlyVertexAscii Environment{..} = go 0
@@ -199,6 +203,8 @@ plyOnlyVertexAscii Environment{..} = go 0
           go $ count+1
         Nothing -> pure count
     toStr v = (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) --TODO use "showS trick"
+
+--------------------------------------------------------------------------------
 
 -- assumes handle at right pos
 plyOnlyFaceAscii :: Environment -> ConduitT Face Void IO Int
@@ -253,6 +259,8 @@ plyBinarySink Environment{..} = do
 
     placeholder = "element vertex 0\ncomment ##################################"
 
+--------------------------------------------------------------------------------
+
 ---TODO rename
 ---TODO implement
 ---TODO move somewhere else since signature doesnt match?
@@ -291,6 +299,8 @@ plyBinarySink' e@Environment{..} cv cf = do
     placeholderVs = "element vertex 0\ncomment ##################################"
     placeholderFs = "element face 0\ncomment ##################################"
 
+--------------------------------------------------------------------------------
+
 plyOnlyVertexBinary :: (X a, Y a, Z a) => Environment -> ConduitT a Void IO Int
 plyOnlyVertexBinary Environment{..} = go 0
   where
@@ -304,6 +314,8 @@ plyOnlyVertexBinary Environment{..} = go 0
             P.putFloatbe $ realToFrac $ getz v
           go $ count+1
         Nothing -> pure count
+
+--------------------------------------------------------------------------------
 
 -- assumes handle at right pos
 plyOnlyFaceBinary :: Environment -> ConduitT Face Void IO Int
@@ -328,6 +340,8 @@ objSink e cv cf = do
   runConduit $ cv .| objOnlyVertex e
   runConduit $ cf .| objOnlyFace e
 
+--------------------------------------------------------------------------------
+
 objOnlyVertex :: (X a, Y a, Z a) => Environment -> ConduitT a Void IO ()
 objOnlyVertex Environment{..} = go
   where
@@ -339,6 +353,8 @@ objOnlyVertex Environment{..} = go
           go
         Nothing -> pure ()
     toStr v = "v " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) --TODO use "showS trick"
+
+--------------------------------------------------------------------------------
 
 -- assumes handle at right pos
 objOnlyFace :: Environment -> ConduitT Face Void IO ()
@@ -352,6 +368,8 @@ objOnlyFace Environment{..} = go
           go
         Nothing -> pure ()
     toStr (Face a b c) = "f " ++ show (a+1) ++ " " ++ show (b+1) ++ " " ++ show (c+1)
+
+--------------------------------------------------------------------------------
 
 xyzSink :: (X a, Y a, Z a) => Environment -> ConduitT a Void IO ()
 xyzSink Environment{..} = go
@@ -372,6 +390,8 @@ xyzSink Environment{..} = go
       . (T.unpack eXyzLine ++))
       ""
 
+--------------------------------------------------------------------------------
+
 xySink :: (X a, Y a) => Environment -> ConduitT a Void IO ()
 xySink Environment{..} = go
   where
@@ -389,6 +409,8 @@ xySink Environment{..} = go
       . (T.unpack eXyzLine ++))
       ""
 
+--------------------------------------------------------------------------------
+
 offSink :: (X a, Y a, Z a) => Environment -> ConduitT () a IO () -> ConduitT () Face IO () -> IO ()
 offSink e@Environment{..} cv cf = do
   -- TODO lots of duped code
@@ -405,8 +427,12 @@ offSink e@Environment{..} cv cf = do
   where --TODO these must be helper methods elsewhere
     placeHolder = "0 0 0\n###########################################################################"
 
+--------------------------------------------------------------------------------
+
 offOnlyVertex :: (X a, Y a, Z a) => Environment -> ConduitT a Void IO Int
 offOnlyVertex = plyOnlyVertexAscii
+
+--------------------------------------------------------------------------------
 
 offOnlyFace :: Environment -> ConduitT Face Void IO Int
 offOnlyFace = plyOnlyFaceAscii

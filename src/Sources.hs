@@ -21,6 +21,8 @@ import Data.Attoparsec.Text.Lazy as A
 import qualified Data.Binary.Get as G
 import qualified Data.ByteString.Lazy as BL
 
+--------------------------------------------------------------------------------
+
 posSources :: M.Map Format (Environment -> ConduitT () Position IO ())
 posSources = M.fromList 
   [ (Xyz, xyz)

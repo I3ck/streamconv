@@ -60,8 +60,8 @@ combinations :: Environment -> [(Format, Format)] -- TODO could be implemented t
 combinations env = filter (\(f, t) -> M.isJust $ resolve env f t) all
   where
     all = (,) <$> formats <*> formats
---------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
 
 showCombinations :: [(Format, Format)] -> String
 showCombinations = intercalate "\n" . fmap (\(f, t) -> show f ++ " -> " ++ show t)

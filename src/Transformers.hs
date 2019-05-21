@@ -79,6 +79,8 @@ triple Environment{..} cv cf = do
       z <- G.getFloatbe -- 12
       pure $ Position (realToFrac x) (realToFrac y) (realToFrac z)
 
+--------------------------------------------------------------------------------
+
 --- TODO consider moving these helpers?
 --- TODO consider delete of tmp file
 writeVerts :: (X a, Y a, Z a) => String -> ConduitT a Void IO ()
@@ -99,6 +101,8 @@ writeVerts tmp = do
             BL.hPutStr h $ float2beBSL $ realToFrac $ getz $ v
           go h
 
+--------------------------------------------------------------------------------
+
 writeFaces :: String -> ConduitT Face Void IO ()
 writeFaces tmp = do
   h <- liftIO $ openFile tmp WriteMode
@@ -116,6 +120,8 @@ writeFaces tmp = do
             BL.hPutStr h $ int2beBSL $ fromIntegral b
             BL.hPutStr h $ int2beBSL $ fromIntegral c
           go h
+          
+--------------------------------------------------------------------------------
 
 --- TODO duplicate impl, should drop anyway
 --- TODO remove
