@@ -7,6 +7,7 @@ module Utils
 
 import Types
 import Classes
+
 import qualified Data.Maybe as M
 
 --------------------------------------------------------------------------------

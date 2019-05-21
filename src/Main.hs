@@ -6,10 +6,11 @@ import Types
 import Instances ()
 import Args
 import Run
+
 import System.IO
-import Options.Applicative
-import System.Exit
 import Control.Monad
+import qualified Options.Applicative as OA
+import qualified System.Exit as E
 import qualified Data.Text as T
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Lazy.IO as LIO
@@ -18,9 +19,9 @@ import qualified Data.Text.Lazy.IO as LIO
 
 main :: IO ()
 main = do
-  rargs <- execParser opts
+  rargs <- OA.execParser opts
   case createArgs rargs of
-    Left e         -> die e
+    Left e         -> E.die e
     Right a@Args{..} -> withFile pOut WriteMode (\h -> do
         env <- createEnvironment h a
         when list $ putStrLn $ showCombinations $ combinations env

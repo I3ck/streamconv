@@ -6,11 +6,12 @@ module Run
 
 import Types
 import Instances ()
-import Conduit
 import Sources
 import Sinks
 import Transformers
+
 import Data.List
+import Conduit
 import qualified Data.Foldable as F
 import qualified Data.Map as M
 import qualified Data.Maybe as M

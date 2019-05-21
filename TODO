@@ -18,6 +18,4 @@ only require bin flag for output and determine type from ending?
 
 give entire lib a module name (Streamconv) ?
 
-all external libs always qualified import?
-
 remove prefixes / suffixes such as sources and sinks and simply include qualified

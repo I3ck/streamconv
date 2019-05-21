@@ -17,7 +17,7 @@ import Conduit
 import qualified Data.Map as M
 import qualified Data.Text.Lazy as L
 import qualified Parsers as P
-import Data.Attoparsec.Text.Lazy as A
+import qualified Data.Attoparsec.Text.Lazy as A
 import qualified Data.Binary.Get as G
 import qualified Data.ByteString.Lazy as BL
 
@@ -95,7 +95,7 @@ plyVertices = makeSource P.plyHeader P.plyVertex
 -- skip header and vertices then parse faces
 -- TODO must skip comments
 plyFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
-plyFaces = makeSource (P.plyHeader >> many' P.plyVertex >> pure() ) P.plyFace
+plyFaces = makeSource (P.plyHeader >> A.many' P.plyVertex >> pure() ) P.plyFace
 
 --------------------------------------------------------------------------------
 
@@ -112,7 +112,7 @@ offVertices = makeSource P.skipOffHeader P.offVertex
 -- skip header and vertices then parse faces
 -- TODO must skip comments
 offFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
-offFaces = makeSource (P.skipOffHeader >> many' P.offVertex >> pure() ) P.offFace
+offFaces = makeSource (P.skipOffHeader >> A.many' P.offVertex >> pure() ) P.offFace
 
 --------------------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ objVertices = makeSource (pure ()) P.objVertex
 
 --- TODO wont work if faces and vertices not in expected order, required in format?
 objFaces :: (Monad m) => L.Text -> ConduitT () Face m ()
-objFaces = makeSource (many' P.objVertex >> pure ()) P.objFace
+objFaces = makeSource (A.many' P.objVertex >> pure ()) P.objFace
 
 --------------------------------------------------------------------------------
 --- TODO monad restriction not required?

@@ -18,12 +18,13 @@ module Parsers
   ) where
 
 import Types
-import Data.Text
+
 import Data.Attoparsec.Text.Lazy
+import qualified Data.Text as T
 
 --------------------------------------------------------------------------------
 
-xyzLine :: Text -> Text -> Parser Position
+xyzLine :: T.Text -> T.Text -> Parser Position
 xyzLine delimval delimline = do
   x <- double
   string delimval

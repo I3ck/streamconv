@@ -11,7 +11,7 @@ module Sinks
 import Types
 import Classes
 import Utils
-import Data.Void
+
 import Conduit
 import System.IO
 import qualified Data.Text as T

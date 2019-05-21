@@ -7,6 +7,7 @@ module Transformers
 
 import Types
 import Classes
+
 import Conduit
 import System.IO
 import Data.Int
@@ -120,7 +121,7 @@ writeFaces tmp = do
             BL.hPutStr h $ int2beBSL $ fromIntegral b
             BL.hPutStr h $ int2beBSL $ fromIntegral c
           go h
-          
+
 --------------------------------------------------------------------------------
 
 --- TODO duplicate impl, should drop anyway
