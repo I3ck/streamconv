@@ -2,7 +2,7 @@
 
 module Transformers
   ( untriple
-  , triplet
+  , triple
   ) where
 
 import Types
@@ -31,8 +31,8 @@ untriple = go
 
 --------------------------------------------------------------------------------
 
-triplet :: (X a, Y a, Z a) => Environment -> ConduitT () a IO () -> ConduitT () Face IO () -> ConduitT () (Position, Position, Position) IO ()
-triplet Environment{..} cv cf = do
+triple :: (X a, Y a, Z a) => Environment -> ConduitT () a IO () -> ConduitT () Face IO () -> ConduitT () (Position, Position, Position) IO ()
+triple Environment{..} cv cf = do
   liftIO $ runConduit $ cv .| writeVerts eTmp2
   liftIO $ runConduit $ cf .| writeFaces eTmp1
   blob <- liftIO $ BL.readFile eTmp1

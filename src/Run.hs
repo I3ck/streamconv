@@ -50,7 +50,7 @@ resolve env from to = result
 
     pos2Pos  env fsource fsink = runConduit $ fsource env .| fsink env
     trip2Pos env fsource fsink = runConduit $ fsource env .| untriple .| fsink env
-    pf2Tri   env fsource fsink = (\(cv, cf) -> runConduit $ triplet env cv cf .| fsink env) $ fsource env
+    pf2Tri   env fsource fsink = (\(cv, cf) -> runConduit $ triple env cv cf .| fsink env) $ fsource env
     pf2Pf    env fsource fsink = (\(cv, cf) -> fsink env cv cf) $ fsource env
     direct   env fsource fsink = runConduit $ fsource env .| fsink env
 
