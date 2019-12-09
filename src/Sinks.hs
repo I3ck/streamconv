@@ -1,5 +1,5 @@
+{-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE BangPatterns #-}
 
 module Sinks
   ( xyzSinks
@@ -8,16 +8,16 @@ module Sinks
   , faceSinks
   ) where
 
-import Types
-import Classes
-import Utils
+import           Classes
+import           Types
+import           Utils
 
-import Conduit
-import System.IO
-import qualified Data.Text as T
-import qualified Data.Map as M
-import qualified Data.Binary.Put as P
+import           Conduit
+import qualified Data.Binary.Put      as P
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Map             as M
+import qualified Data.Text            as T
+import           System.IO
 
 --------------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ faceSinks = M.fromList
 
 plyAsciiSink :: (X a, Y a, Z a) => Environment -> ConduitT a Void IO ()
 plyAsciiSink Environment{..} = do
-  liftIO $ hPutStr eHandle $ unlines 
+  liftIO $ hPutStr eHandle $ unlines
     [ "ply"
     , "format ascii 1.0"
     ]
@@ -87,7 +87,7 @@ plyAsciiSink Environment{..} = do
 --- TODO later require optional normals
 stlAsciiSink :: (X a, Y a, Z a) => Environment -> ConduitT (a, a, a) Void IO ()
 stlAsciiSink Environment{..} = do
-  liftIO $ hPutStrLn eHandle "solid " 
+  liftIO $ hPutStrLn eHandle "solid "
   go
   where
     go = do
@@ -107,7 +107,7 @@ stlAsciiSink Environment{..} = do
         Nothing -> do
           liftIO $ hPutStrLn eHandle "endsolid "
           pure ()
-    toStr v = "            vertex " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v) 
+    toStr v = "            vertex " ++ (show . getx $ v) ++ " " ++ (show . gety $ v) ++ " " ++ (show . getz $ v)
     toStrNormal a b c = "    facet normal " ++ (show . i $ n) ++ " " ++ (show . j $ n) ++ " " ++ (show . k $ n)
       where
         n = faceNormal (toPos a) (toPos b) (toPos c)
@@ -198,7 +198,7 @@ plyOnlyVertexAscii Environment{..} = go 0
     go !count = do
       may <- await
       case may of
-        Just v  -> do 
+        Just v  -> do
           liftIO $ hPutStrLn eHandle $ toStr v
           go $ count+1
         Nothing -> pure count
@@ -213,7 +213,7 @@ plyOnlyFaceAscii Environment{..} = go 0
     go !count = do
       may <- await
       case may of
-        Just v  -> do 
+        Just v  -> do
           liftIO $ hPutStr eHandle $ toStr v
           go $ count+1
         Nothing -> pure count
@@ -253,7 +253,7 @@ plyBinarySink Environment{..} = do
         Nothing -> do
           let placeholderlength = length placeholder
               replacement = "element vertex " ++ show count ++ "\ncomment "
-          liftIO $ do 
+          liftIO $ do
             hSeek eHandle AbsoluteSeek placeholderPos
             hPutStrLn eHandle $ replacement ++ replicate (placeholderlength - length replacement) '#'
 
@@ -307,7 +307,7 @@ plyOnlyVertexBinary Environment{..} = go 0
     go !count = do
       may <- await
       case may of
-        Just v  -> do 
+        Just v  -> do
           liftIO $ BL.hPutStr eHandle $ P.runPut $ do
             P.putFloatbe $ realToFrac $ getx v
             P.putFloatbe $ realToFrac $ gety v
@@ -324,15 +324,15 @@ plyOnlyFaceBinary Environment{..} = go 0
     go !count = do
       may <- await
       case may of
-        Just (Face a b c)  -> do 
-          liftIO $ BL.hPutStr eHandle $ P.runPut $ do 
+        Just (Face a b c)  -> do
+          liftIO $ BL.hPutStr eHandle $ P.runPut $ do
             P.putInt8 3
             P.putInt32be $ fromIntegral a
             P.putInt32be $ fromIntegral b
             P.putInt32be $ fromIntegral c
           go $ count+1
         Nothing -> pure count
-    
+
 --------------------------------------------------------------------------------
 
 objSink :: (X a, Y a, Z a) => Environment -> ConduitT () a IO () -> ConduitT () Face IO () -> IO ()
@@ -348,7 +348,7 @@ objOnlyVertex Environment{..} = go
     go = do
       may <- await
       case may of
-        Just v  -> do 
+        Just v  -> do
           liftIO $ hPutStrLn eHandle $ toStr v
           go
         Nothing -> pure ()
@@ -363,7 +363,7 @@ objOnlyFace Environment{..} = go
     go = do
       may <- await
       case may of
-        Just v  -> do 
+        Just v  -> do
           liftIO $ hPutStrLn eHandle $ toStr v
           go
         Nothing -> pure ()
@@ -377,11 +377,11 @@ xyzSink Environment{..} = go
     go = do
       may <- await
       case may of
-        Just v  -> do 
+        Just v  -> do
           liftIO $ hPutStrLn eHandle $ toStr v
           go
         Nothing -> pure ()
-    toStr v = 
+    toStr v =
         (((show . getx $ v) ++)
       . (T.unpack eXyzVal ++)
       . ((show . gety $ v) ++)
@@ -398,11 +398,11 @@ xySink Environment{..} = go
     go = do
       may <- await
       case may of
-        Just v  -> do 
+        Just v  -> do
           liftIO $ hPutStrLn eHandle $ toStr v
           go
         Nothing -> pure ()
-    toStr v = 
+    toStr v =
         (((show . getx $ v) ++)
       . (T.unpack eXyzVal ++)
       . ((show . gety $ v) ++)

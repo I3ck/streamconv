@@ -5,21 +5,21 @@ module Transformers
   , triple
   ) where
 
-import Types
-import Classes
+import           Classes
+import           Types
 
-import Conduit
-import System.IO
-import Data.Int
-import qualified Data.Binary.Get as G
-import qualified Data.Binary.Put as P
+import           Conduit
+import qualified Data.Binary.Get      as G
+import qualified Data.Binary.Put      as P
 import qualified Data.ByteString.Lazy as BL
+import           Data.Int
+import           System.IO
 
 --------------------------------------------------------------------------------
 
 untriple :: (Monad m) => ConduitT (a, a, a) a m ()
 untriple = go
-  where 
+  where
     go = do
       may <- await
       case may of
@@ -94,7 +94,7 @@ writeVerts tmp = do
       may <- await
       case may of
         Nothing -> pure ()
-        Just v  -> do 
+        Just v  -> do
           liftIO $ do
             ---TODO conversion to float currently, keep double precision!
             BL.hPutStr h $ float2beBSL $ realToFrac $ getx $ v
@@ -114,7 +114,7 @@ writeFaces tmp = do
       may <- await
       case may of
         Nothing -> pure ()
-        Just (Face a b c) -> do 
+        Just (Face a b c) -> do
           liftIO $ do
             --- TODO MIGHT be lossy
             BL.hPutStr h $ int2beBSL $ fromIntegral a

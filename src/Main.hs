@@ -1,19 +1,19 @@
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Main where
 
-import Types
-import Instances ()
-import Args
-import Run
+import           Args
+import           Instances            ()
+import           Run
+import           Types
 
-import System.IO
-import Control.Monad
-import qualified Options.Applicative as OA
-import qualified System.Exit as E
-import qualified Data.Text as T
+import           Control.Monad
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.Text.Lazy.IO as LIO
+import qualified Data.Text            as T
+import qualified Data.Text.Lazy.IO    as LIO
+import qualified Options.Applicative  as OA
+import qualified System.Exit          as E
+import           System.IO
 
 --------------------------------------------------------------------------------
 
@@ -44,5 +44,5 @@ createEnvironment h Args{..} = do
     , eXyzLine = T.pack xyzLine
     , eHandle  = h
     , eTmp1    = tmp1
-    , eTmp2    = tmp2 
+    , eTmp2    = tmp2
     }

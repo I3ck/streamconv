@@ -17,10 +17,10 @@ module Parsers
   , objFace
   ) where
 
-import Types
+import           Types
 
-import Data.Attoparsec.Text.Lazy
-import qualified Data.Text as T
+import           Data.Attoparsec.Text.Lazy
+import qualified Data.Text                 as T
 
 --------------------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ skipSTLAsciiHeader = do
   skipAllRestOfLine
 
 --------------------------------------------------------------------------------
-  
+
 --- TODO later also yield Normals
 --- TODO likely misses space skipping
 stlFace :: Parser (Position, Position, Position)
@@ -192,7 +192,7 @@ objFace = do
 --------------------------------------------------------------------------------
 
 skipObjComments :: Parser ()
-skipObjComments = do 
+skipObjComments = do
   many' (skipSpace >> objComment >> skipSpace)
   pure ()
 
@@ -213,6 +213,6 @@ skipAllRestOfLine = do
 --------------------------------------------------------------------------------
 
 skipInlineSpace :: Parser ()
-skipInlineSpace = do 
+skipInlineSpace = do
   many' $ skip (\x -> x == ' ' || x == '\t')
   pure ()

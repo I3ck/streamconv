@@ -2,8 +2,8 @@
 
 module Instances where
 
-import Types
-import Classes
+import           Classes
+import           Types
 
 --------------------------------------------------------------------------------
 

@@ -4,17 +4,17 @@ module Run
   , run
   ) where
 
-import Types
-import Instances ()
-import Sources
-import Sinks
-import Transformers
+import           Instances     ()
+import           Sinks
+import           Sources
+import           Transformers
+import           Types
 
-import Data.List
-import Conduit
+import           Conduit
 import qualified Data.Foldable as F
-import qualified Data.Map as M
-import qualified Data.Maybe as M
+import           Data.List
+import qualified Data.Map      as M
+import qualified Data.Maybe    as M
 
 --------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ run env from to = case resolve env from to of
 
 resolve :: Environment -> Format -> Format -> Maybe (IO ())
 resolve env from to = result
-  where 
+  where
     pfSource      = M.lookup from pfSources
     tripletSource = M.lookup from tripletSources
     posSource     = M.lookup from posSources

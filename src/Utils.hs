@@ -1,12 +1,12 @@
-module Utils 
+module Utils
   ( faceNormal
   , toPos --- TODO consider refactoring away
   , maybeRead
   , maybeToEither
   ) where
 
-import Types
-import Classes
+import           Classes
+import           Types
 
 import qualified Data.Maybe as M
 
@@ -59,4 +59,4 @@ maybeRead s = valueIfNoRemainder =<< (M.listToMaybe . reads $ s)
 maybeToEither :: e -> Maybe a -> Either e a
 maybeToEither _   (Just x) = Right x
 maybeToEither err Nothing  = Left err
-                                
+

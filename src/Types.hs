@@ -1,9 +1,9 @@
 module Types where
 
-import Data.Text
-import System.IO
-import qualified Data.Text.Lazy as L
 import qualified Data.ByteString.Lazy as BL
+import           Data.Text
+import qualified Data.Text.Lazy       as L
+import           System.IO
 
 --------------------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ data Face = Face
   , b :: Int
   , c :: Int
   } deriving (Show)
-  
+
 --------------------------------------------------------------------------------
 
 data Environment = Environment
@@ -52,7 +52,7 @@ data Format -- MAKE SURE TO UPDATE formats BELOW!!!
   | Xyz
   deriving (Show, Read, Eq, Ord)
 
-formats = 
+formats =
   [ StlAscii
   , StlBinary
   , Obj

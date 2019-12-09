@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Sources
-  ( xyz 
+  ( xyz
   , stlAscii
   , stlBinary
   , ply
@@ -12,19 +12,19 @@ module Sources
   , tripletSources
   ) where
 
-import Types
-import Conduit
-import qualified Data.Map as M
-import qualified Data.Text.Lazy as L
-import qualified Parsers as P
+import           Conduit
 import qualified Data.Attoparsec.Text.Lazy as A
-import qualified Data.Binary.Get as G
-import qualified Data.ByteString.Lazy as BL
+import qualified Data.Binary.Get           as G
+import qualified Data.ByteString.Lazy      as BL
+import qualified Data.Map                  as M
+import qualified Data.Text.Lazy            as L
+import qualified Parsers                   as P
+import           Types
 
 --------------------------------------------------------------------------------
 
 posSources :: M.Map Format (Environment -> ConduitT () Position IO ())
-posSources = M.fromList 
+posSources = M.fromList
   [ (Xyz, xyz)
   ]
 
