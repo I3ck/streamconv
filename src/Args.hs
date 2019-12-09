@@ -18,7 +18,17 @@ createArgs :: ArgsRaw -> Either String Args ---TODO error types
 createArgs ArgsRaw{..} = do
   fIn  <- maybeToEither "Unknown input format"  $ maybeRead rfIn
   fOut <- maybeToEither "Unknown output format" $ maybeRead rfOut
-  pure Args{pIn = rpIn, pOut = rpOut, fIn = fIn, fOut = fOut, tmp1 = rTmp1, tmp2 = rTmp2, xyzVal = rXyzVal, xyzLine = rXyzLine, list = rList}
+  pure Args
+    { pIn     = rpIn
+    , pOut    = rpOut
+    , fIn     = fIn
+    , fOut    = fOut
+    , tmp1    = rTmp1
+    , tmp2    = rTmp2
+    , xyzVal  = rXyzVal
+    , xyzLine = rXyzLine
+    , list    = rList
+    }
 
 --------------------------------------------------------------------------------
 
@@ -26,7 +36,7 @@ opts :: ParserInfo ArgsRaw
 opts = info (helper <*> args)
   ( fullDesc
   <> progDesc ("streamconv " ++ version ++" - Memory efficient conversion between pointcloud and mesh data formats. Use --help for more information (c) Martin Buck")
-  <> header ("streamconv " ++ version ++ " (c) Martin Buck")
+  <> header   ("streamconv " ++ version ++ " (c) Martin Buck")
   )
 
 --------------------------------------------------------------------------------
@@ -55,14 +65,14 @@ args = ArgsRaw
     )
   <*> strOption
     ( long "tmp1"
-    <> help "Path that shall be used to write temporary data"
+    <> help "First path that shall be used to write temporary data"
     <> metavar "STRING"
     <> value "streamconvtmp1.tmp"
     <> showDefault
     )
   <*> strOption
     ( long "tmp2"
-    <> help "Path that shall be used to write temporary data"
+    <> help "Second path that shall be used to write temporary data"
     <> metavar "STRING"
     <> value "streamconvtmp2.tmp"
     <> showDefault

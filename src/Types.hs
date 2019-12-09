@@ -28,15 +28,15 @@ data Face = Face
 --------------------------------------------------------------------------------
 
 data Environment = Environment
-  { eBlobA1  :: L.Text        -- file read as lazy text
-  , eBlobA2  :: L.Text        -- file read as lazy text
-  , eBlobB1  :: BL.ByteString -- file read as lazy bytestring
-  , eBlobB2  :: BL.ByteString -- file read as lazy bytestring
-  , eXyzVal  :: Text          -- value delimiter for xyz files
-  , eXyzLine :: Text          -- line delimiter for xyz files
-  , eHandle  :: Handle        -- handle to write to
-  , eTmp1    :: String        -- path to first tmp file
-  , eTmp2    :: String        -- path to second tmp file
+  { eBlobA1  :: L.Text        -- File read as lazy text
+  , eBlobA2  :: L.Text        -- File read as lazy text
+  , eBlobB1  :: BL.ByteString -- File read as lazy bytestring
+  , eBlobB2  :: BL.ByteString -- File read as lazy bytestring
+  , eXyzVal  :: Text          -- Value delimiter for xyz files
+  , eXyzLine :: Text          -- Line delimiter for xyz files
+  , eHandle  :: Handle        -- Handle to write to
+  , eTmp1    :: String        -- Path to first tmp file
+  , eTmp2    :: String        -- Path to second tmp file
   }
 
 --------------------------------------------------------------------------------

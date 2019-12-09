@@ -79,9 +79,9 @@ Available options:
                            PlyAscii, PlyBinary, Xy, Xyz ]
   --fout STRING            Output format [StlAscii, StlBinary, Obj, Off,
                            PlyAscii, PlyBinary, Xy, Xyz ]
-  --tmp1 STRING            Path that shall be used to write temporary
+  --tmp1 STRING            First path that shall be used to write temporary
                            data (default: "streamconvtmp1.tmp")
-  --tmp2 STRING            Path that shall be used to write temporary
+  --tmp2 STRING            Second path that shall be used to write temporary
                            data (default: "streamconvtmp2.tmp")
   --xyzval STRING          Delimiter to be used between xyz
                            values (default: ";")
