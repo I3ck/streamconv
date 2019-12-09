@@ -100,3 +100,14 @@ Temporary Files
 ---------------
 Some conversions can currently only be done by utilizing temporary files.  
 Please use the `--tmp1` and `--tmp2` parameters if you don't want `streamconv` to use the default paths and names.  
+
+
+License
+-------
+`MIT` (also see `LICENSE`)
+
+
+Contribution
+------------
+Feel free to create issues if you find any bugs or want to request features / conversions.  
+You can also contribute code via `PR`s, but consider contacting me first, since my local version might be ahead or I might be working on the topic myself already.  
