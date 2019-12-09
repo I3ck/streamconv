@@ -19,3 +19,5 @@ only require bin flag for output and determine type from ending?
 give entire lib a module name (Streamconv) ?
 
 remove prefixes / suffixes such as sources and sinks and simply include qualified
+
+should be possible to implement 'triple' transformer in such a way that it only writes a tmp file for the position data
