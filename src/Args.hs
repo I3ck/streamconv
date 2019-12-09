@@ -25,7 +25,7 @@ createArgs ArgsRaw{..} = do
 opts :: ParserInfo ArgsRaw
 opts = info (helper <*> args)
   ( fullDesc
-  <> progDesc ("streamconv " ++ version ++" - Memory efficient conversion between pointcloud formats. Use --help for more information (c) Martin Buck")
+  <> progDesc ("streamconv " ++ version ++" - Memory efficient conversion between pointcloud and mesh data formats. Use --help for more information (c) Martin Buck")
   <> header ("streamconv " ++ version ++ " (c) Martin Buck")
   )
 
